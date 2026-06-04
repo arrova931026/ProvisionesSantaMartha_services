@@ -1,0 +1,18 @@
+// filepath: c:\Users\Armando Rojas Valdez\Desktop\provisiones\Provisiones Santa Martha services\.gitignore
+# Maven
+target/
+*.class
+
+# IDE
+.idea/
+*.iml
+.vscode/
+
+# Sensible
+.env
+*.env
+application-local.yml
+
+# OS
+.DS_Store
+Thumbs.db

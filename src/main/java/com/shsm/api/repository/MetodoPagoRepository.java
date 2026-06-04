@@ -1,0 +1,9 @@
+package com.shsm.api.repository;
+
+import com.shsm.api.entity.catalog.MetodoPago;
+import org.springframework.data.jpa.repository.JpaRepository;
+import java.util.List;
+
+public interface MetodoPagoRepository extends JpaRepository<MetodoPago, Long> {
+    List<MetodoPago> findByActivoTrue();
+}
