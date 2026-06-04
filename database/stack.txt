@@ -1,0 +1,12 @@
+Notepad++
+Visual Studio Code
+Git
+SoapUI
+JDK21
+maven 3.9.16
+Node.js 24.16.0
+npm 11.11.3
+Angular 21
+DBEaver
+Postgres 18
+
