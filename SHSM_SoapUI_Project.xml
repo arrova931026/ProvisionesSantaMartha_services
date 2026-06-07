@@ -1,0 +1,1454 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ============================================================
+  Proyecto SoapUI – API REST Sociedad Humanista Santa Martha
+  Versión:   1.0.0
+  Framework: Spring Boot 3.4.0 · Java 21 · PostgreSQL
+  Base URL:  http://localhost:8080/api
+  Fecha:     Junio 2026
+
+  INSTRUCCIONES DE IMPORTACIÓN:
+    1. Abrir SoapUI → File → Import Project → seleccionar este archivo.
+    2. Ejecutar primero el TestCase "Flujo Completo":
+       - El paso "01 - Login" obtendrá el token.
+       - El script Groovy "02 - Capturar Token" lo guardará en la
+         propiedad del proyecto ${#Project#access_token}.
+    3. Todos los endpoints protegidos usan:
+         Header Authorization: Bearer ${#Project#access_token}
+  ============================================================
+-->
+<con:soapui-project
+    id="shsm-api-project-v1"
+    name="SHSM API - Sociedad Humanista Santa Martha"
+    resourceroots=""
+    soapui-version="5.7.2"
+    abortOnError="false"
+    runType="SEQUENTIAL"
+    activeEnvironment="Default"
+    xmlns:con="http://eviware.com/soapui/config">
+
+  <con:settings/>
+
+  <!-- ═══════════════════════════════════════════════════════
+       REST INTERFACE
+       ═══════════════════════════════════════════════════════ -->
+  <con:interface
+      xsi:type="con:RestService"
+      id="iface-shsm-rest"
+      name="SHSM API REST"
+      type="rest"
+      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+
+    <con:settings/>
+    <con:definitionCache type="TEXT" rootPart=""/>
+    <con:endpoints>
+      <con:endpoint>http://localhost:8080/api</con:endpoint>
+    </con:endpoints>
+
+    <!-- ── /auth ── -->
+    <con:resource name="auth" path="/auth" id="r-auth">
+
+      <con:resource name="login" path="/login" id="r-auth-login">
+        <con:method name="Login" method="POST" id="m-login">
+          <con:settings/>
+          <con:request name="Request 1" id="rq-login" mediaType="application/json">
+            <con:settings/>
+            <con:endpoint>http://localhost:8080/api</con:endpoint>
+            <con:request><![CDATA[{
+  "username": "admin",
+  "password": "Admin123!"
+}]]></con:request>
+            <con:credentials/>
+            <con:jmsConfig JMSDeliveryMode="NON_PERSISTENT"/>
+            <con:parameters/>
+          </con:request>
+        </con:method>
+      </con:resource>
+
+      <con:resource name="refresh" path="/refresh" id="r-auth-refresh">
+        <con:method name="Refresh Token" method="POST" id="m-refresh">
+          <con:settings/>
+          <con:request name="Request 1" id="rq-refresh" mediaType="application/json">
+            <con:settings/>
+            <con:endpoint>http://localhost:8080/api</con:endpoint>
+            <con:request><![CDATA[{
+  "refreshToken": "${#Project#refresh_token}"
+}]]></con:request>
+            <con:credentials/>
+            <con:jmsConfig JMSDeliveryMode="NON_PERSISTENT"/>
+            <con:parameters/>
+          </con:request>
+        </con:method>
+      </con:resource>
+
+      <con:resource name="logout" path="/logout" id="r-auth-logout">
+        <con:method name="Logout" method="POST" id="m-logout">
+          <con:settings/>
+          <con:request name="Request 1" id="rq-logout" mediaType="application/json">
+            <con:settings/>
+            <con:endpoint>http://localhost:8080/api</con:endpoint>
+            <con:request><![CDATA[{
+  "refreshToken": "${#Project#refresh_token}"
+}]]></con:request>
+            <con:headers>
+              <con:entry key="Authorization" value="Bearer ${#Project#access_token}"/>
+            </con:headers>
+            <con:credentials/>
+            <con:jmsConfig JMSDeliveryMode="NON_PERSISTENT"/>
+            <con:parameters/>
+          </con:request>
+        </con:method>
+      </con:resource>
+
+    </con:resource>
+
+    <!-- ── /catalogos ── -->
+    <con:resource name="catalogos" path="/catalogos" id="r-cat">
+
+      <con:resource name="roles" path="/roles" id="r-cat-roles">
+        <con:method name="GET Roles" method="GET" id="m-cat-roles">
+          <con:settings/>
+          <con:request name="Request 1" id="rq-cat-roles">
+            <con:settings/>
+            <con:endpoint>http://localhost:8080/api</con:endpoint>
+            <con:request/>
+            <con:headers>
+              <con:entry key="Authorization" value="Bearer ${#Project#access_token}"/>
+            </con:headers>
+            <con:credentials/>
+            <con:jmsConfig JMSDeliveryMode="NON_PERSISTENT"/>
+            <con:parameters/>
+          </con:request>
+        </con:method>
+      </con:resource>
+
+      <con:resource name="parentescos" path="/parentescos" id="r-cat-parentescos">
+        <con:method name="GET Parentescos" method="GET" id="m-cat-parentescos">
+          <con:settings/>
+          <con:request name="Request 1" id="rq-cat-parentescos">
+            <con:settings/>
+            <con:endpoint>http://localhost:8080/api</con:endpoint>
+            <con:request/>
+            <con:headers>
+              <con:entry key="Authorization" value="Bearer ${#Project#access_token}"/>
+            </con:headers>
+            <con:credentials/>
+            <con:jmsConfig JMSDeliveryMode="NON_PERSISTENT"/>
+            <con:parameters/>
+          </con:request>
+        </con:method>
+      </con:resource>
+
+      <con:resource name="estados-contrato" path="/estados-contrato" id="r-cat-estados-contrato">
+        <con:method name="GET Estados Contrato" method="GET" id="m-cat-estados-contrato">
+          <con:settings/>
+          <con:request name="Request 1" id="rq-cat-estados-contrato">
+            <con:settings/>
+            <con:endpoint>http://localhost:8080/api</con:endpoint>
+            <con:request/>
+            <con:headers>
+              <con:entry key="Authorization" value="Bearer ${#Project#access_token}"/>
+            </con:headers>
+            <con:credentials/>
+            <con:jmsConfig JMSDeliveryMode="NON_PERSISTENT"/>
+            <con:parameters/>
+          </con:request>
+        </con:method>
+      </con:resource>
+
+      <con:resource name="estados-pago" path="/estados-pago" id="r-cat-estados-pago">
+        <con:method name="GET Estados Pago" method="GET" id="m-cat-estados-pago">
+          <con:settings/>
+          <con:request name="Request 1" id="rq-cat-estados-pago">
+            <con:settings/>
+            <con:endpoint>http://localhost:8080/api</con:endpoint>
+            <con:request/>
+            <con:headers>
+              <con:entry key="Authorization" value="Bearer ${#Project#access_token}"/>
+            </con:headers>
+            <con:credentials/>
+            <con:jmsConfig JMSDeliveryMode="NON_PERSISTENT"/>
+            <con:parameters/>
+          </con:request>
+        </con:method>
+      </con:resource>
+
+      <con:resource name="metodos-pago" path="/metodos-pago" id="r-cat-metodos-pago">
+        <con:method name="GET Metodos Pago" method="GET" id="m-cat-metodos-pago">
+          <con:settings/>
+          <con:request name="Request 1" id="rq-cat-metodos-pago">
+            <con:settings/>
+            <con:endpoint>http://localhost:8080/api</con:endpoint>
+            <con:request/>
+            <con:headers>
+              <con:entry key="Authorization" value="Bearer ${#Project#access_token}"/>
+            </con:headers>
+            <con:credentials/>
+            <con:jmsConfig JMSDeliveryMode="NON_PERSISTENT"/>
+            <con:parameters/>
+          </con:request>
+        </con:method>
+      </con:resource>
+
+      <con:resource name="tipos-documento" path="/tipos-documento" id="r-cat-tipos-doc">
+        <con:method name="GET Tipos Documento" method="GET" id="m-cat-tipos-doc">
+          <con:settings/>
+          <con:request name="Request 1" id="rq-cat-tipos-doc">
+            <con:settings/>
+            <con:endpoint>http://localhost:8080/api</con:endpoint>
+            <con:request/>
+            <con:headers>
+              <con:entry key="Authorization" value="Bearer ${#Project#access_token}"/>
+            </con:headers>
+            <con:credentials/>
+            <con:jmsConfig JMSDeliveryMode="NON_PERSISTENT"/>
+            <con:parameters/>
+          </con:request>
+        </con:method>
+      </con:resource>
+
+      <con:resource name="categorias-articulo" path="/categorias-articulo" id="r-cat-categorias">
+        <con:method name="GET Categorias Articulo" method="GET" id="m-cat-categorias">
+          <con:settings/>
+          <con:request name="Request 1" id="rq-cat-categorias">
+            <con:settings/>
+            <con:endpoint>http://localhost:8080/api</con:endpoint>
+            <con:request/>
+            <con:headers>
+              <con:entry key="Authorization" value="Bearer ${#Project#access_token}"/>
+            </con:headers>
+            <con:credentials/>
+            <con:jmsConfig JMSDeliveryMode="NON_PERSISTENT"/>
+            <con:parameters/>
+          </con:request>
+        </con:method>
+      </con:resource>
+
+      <con:resource name="sucursales" path="/sucursales" id="r-cat-sucursales">
+        <con:method name="GET Sucursales" method="GET" id="m-cat-sucursales">
+          <con:settings/>
+          <con:request name="Request 1" id="rq-cat-sucursales">
+            <con:settings/>
+            <con:endpoint>http://localhost:8080/api</con:endpoint>
+            <con:request/>
+            <con:headers>
+              <con:entry key="Authorization" value="Bearer ${#Project#access_token}"/>
+            </con:headers>
+            <con:credentials/>
+            <con:jmsConfig JMSDeliveryMode="NON_PERSISTENT"/>
+            <con:parameters/>
+          </con:request>
+        </con:method>
+      </con:resource>
+
+    </con:resource>
+
+    <!-- ── /planes ── -->
+    <con:resource name="planes" path="/planes" id="r-planes">
+
+      <con:method name="GET Planes" method="GET" id="m-planes-list">
+        <con:settings/>
+        <con:request name="Request 1" id="rq-planes-list">
+          <con:settings/>
+          <con:endpoint>http://localhost:8080/api</con:endpoint>
+          <con:request/>
+          <con:credentials/>
+          <con:jmsConfig JMSDeliveryMode="NON_PERSISTENT"/>
+          <con:parameters/>
+        </con:request>
+      </con:method>
+
+      <con:method name="POST Plan" method="POST" id="m-planes-create">
+        <con:settings/>
+        <con:request name="Request 1" id="rq-planes-create" mediaType="application/json">
+          <con:settings/>
+          <con:endpoint>http://localhost:8080/api</con:endpoint>
+          <con:request><![CDATA[{
+  "nombre": "Plan Especial",
+  "descripcion": "Descripción del plan",
+  "precioTotal": 25000.00,
+  "mensualidad": 350.00,
+  "duracionMeses": 72,
+  "numeroBeneficiarios": 2
+}]]></con:request>
+          <con:headers>
+            <con:entry key="Authorization" value="Bearer ${#Project#access_token}"/>
+          </con:headers>
+          <con:credentials/>
+          <con:jmsConfig JMSDeliveryMode="NON_PERSISTENT"/>
+          <con:parameters/>
+        </con:request>
+      </con:method>
+
+      <con:resource name="{id}" path="/{id}" id="r-planes-id">
+        <con:parameters>
+          <con:parameter name="id" style="TEMPLATE" default="1" description="ID del plan funerario">
+            <con:value>1</con:value>
+          </con:parameter>
+        </con:parameters>
+
+        <con:method name="GET Plan by ID" method="GET" id="m-planes-get">
+          <con:settings/>
+          <con:request name="Request 1" id="rq-planes-get">
+            <con:settings/>
+            <con:endpoint>http://localhost:8080/api</con:endpoint>
+            <con:request/>
+            <con:credentials/>
+            <con:jmsConfig JMSDeliveryMode="NON_PERSISTENT"/>
+            <con:parameters/>
+          </con:request>
+        </con:method>
+
+        <con:method name="PUT Plan" method="PUT" id="m-planes-update">
+          <con:settings/>
+          <con:request name="Request 1" id="rq-planes-update" mediaType="application/json">
+            <con:settings/>
+            <con:endpoint>http://localhost:8080/api</con:endpoint>
+            <con:request><![CDATA[{
+  "nombre": "Plan Especial Actualizado",
+  "descripcion": "Descripción actualizada del plan",
+  "precioTotal": 26000.00,
+  "mensualidad": 365.00,
+  "duracionMeses": 72,
+  "numeroBeneficiarios": 2
+}]]></con:request>
+            <con:headers>
+              <con:entry key="Authorization" value="Bearer ${#Project#access_token}"/>
+            </con:headers>
+            <con:credentials/>
+            <con:jmsConfig JMSDeliveryMode="NON_PERSISTENT"/>
+            <con:parameters/>
+          </con:request>
+        </con:method>
+
+        <con:method name="DELETE Plan" method="DELETE" id="m-planes-delete">
+          <con:settings/>
+          <con:request name="Request 1" id="rq-planes-delete">
+            <con:settings/>
+            <con:endpoint>http://localhost:8080/api</con:endpoint>
+            <con:request/>
+            <con:headers>
+              <con:entry key="Authorization" value="Bearer ${#Project#access_token}"/>
+            </con:headers>
+            <con:credentials/>
+            <con:jmsConfig JMSDeliveryMode="NON_PERSISTENT"/>
+            <con:parameters/>
+          </con:request>
+        </con:method>
+
+      </con:resource>
+    </con:resource>
+
+    <!-- ── /personas ── -->
+    <con:resource name="personas" path="/personas" id="r-personas">
+
+      <con:method name="GET Personas" method="GET" id="m-personas-list">
+        <con:settings/>
+        <con:request name="Request 1" id="rq-personas-list">
+          <con:settings/>
+          <con:endpoint>http://localhost:8080/api</con:endpoint>
+          <con:request/>
+          <con:headers>
+            <con:entry key="Authorization" value="Bearer ${#Project#access_token}"/>
+          </con:headers>
+          <con:credentials/>
+          <con:jmsConfig JMSDeliveryMode="NON_PERSISTENT"/>
+          <con:parameters>
+            <con:parameter name="q" style="QUERY" default="" description="Búsqueda por nombre, apellido o correo">
+              <con:value/>
+            </con:parameter>
+            <con:parameter name="page" style="QUERY" default="0" description="Número de página">
+              <con:value>0</con:value>
+            </con:parameter>
+            <con:parameter name="size" style="QUERY" default="20" description="Registros por página">
+              <con:value>20</con:value>
+            </con:parameter>
+            <con:parameter name="sort" style="QUERY" default="apPaterno" description="Campo de ordenamiento">
+              <con:value>apPaterno</con:value>
+            </con:parameter>
+          </con:parameters>
+        </con:request>
+      </con:method>
+
+      <con:method name="POST Persona" method="POST" id="m-personas-create">
+        <con:settings/>
+        <con:request name="Request 1" id="rq-personas-create" mediaType="application/json">
+          <con:settings/>
+          <con:endpoint>http://localhost:8080/api</con:endpoint>
+          <con:request><![CDATA[{
+  "nombre": "Juan",
+  "apPaterno": "García",
+  "apMaterno": "López",
+  "fechaNacimiento": "1985-03-15",
+  "sexo": "M",
+  "curp": "GALJ850315HDFRZN04",
+  "rfc": "GALJ850315AB1",
+  "telefono": "5512345678",
+  "correo": "juan@example.com",
+  "calle": "Av. Principal",
+  "numeroExt": "10",
+  "colonia": "Centro",
+  "municipio": "Iztapalapa",
+  "estado": "Ciudad de México",
+  "codigoPostal": "09510",
+  "pais": "México"
+}]]></con:request>
+          <con:headers>
+            <con:entry key="Authorization" value="Bearer ${#Project#access_token}"/>
+          </con:headers>
+          <con:credentials/>
+          <con:jmsConfig JMSDeliveryMode="NON_PERSISTENT"/>
+          <con:parameters/>
+        </con:request>
+      </con:method>
+
+      <con:resource name="{id}" path="/{id}" id="r-personas-id">
+        <con:parameters>
+          <con:parameter name="id" style="TEMPLATE" default="1" description="ID de la persona">
+            <con:value>1</con:value>
+          </con:parameter>
+        </con:parameters>
+
+        <con:method name="GET Persona by ID" method="GET" id="m-personas-get">
+          <con:settings/>
+          <con:request name="Request 1" id="rq-personas-get">
+            <con:settings/>
+            <con:endpoint>http://localhost:8080/api</con:endpoint>
+            <con:request/>
+            <con:headers>
+              <con:entry key="Authorization" value="Bearer ${#Project#access_token}"/>
+            </con:headers>
+            <con:credentials/>
+            <con:jmsConfig JMSDeliveryMode="NON_PERSISTENT"/>
+            <con:parameters/>
+          </con:request>
+        </con:method>
+
+        <con:method name="PUT Persona" method="PUT" id="m-personas-update">
+          <con:settings/>
+          <con:request name="Request 1" id="rq-personas-update" mediaType="application/json">
+            <con:settings/>
+            <con:endpoint>http://localhost:8080/api</con:endpoint>
+            <con:request><![CDATA[{
+  "nombre": "Juan Actualizado",
+  "apPaterno": "García",
+  "apMaterno": "López",
+  "telefono": "5512345679",
+  "correo": "juan.actualizado@example.com",
+  "pais": "México"
+}]]></con:request>
+            <con:headers>
+              <con:entry key="Authorization" value="Bearer ${#Project#access_token}"/>
+            </con:headers>
+            <con:credentials/>
+            <con:jmsConfig JMSDeliveryMode="NON_PERSISTENT"/>
+            <con:parameters/>
+          </con:request>
+        </con:method>
+
+        <con:method name="DELETE Persona" method="DELETE" id="m-personas-delete">
+          <con:settings/>
+          <con:request name="Request 1" id="rq-personas-delete">
+            <con:settings/>
+            <con:endpoint>http://localhost:8080/api</con:endpoint>
+            <con:request/>
+            <con:headers>
+              <con:entry key="Authorization" value="Bearer ${#Project#access_token}"/>
+            </con:headers>
+            <con:credentials/>
+            <con:jmsConfig JMSDeliveryMode="NON_PERSISTENT"/>
+            <con:parameters/>
+          </con:request>
+        </con:method>
+
+      </con:resource>
+    </con:resource>
+
+    <!-- ── /contratos ── -->
+    <con:resource name="contratos" path="/contratos" id="r-contratos">
+
+      <con:method name="GET Contratos" method="GET" id="m-contratos-list">
+        <con:settings/>
+        <con:request name="Request 1" id="rq-contratos-list">
+          <con:settings/>
+          <con:endpoint>http://localhost:8080/api</con:endpoint>
+          <con:request/>
+          <con:headers>
+            <con:entry key="Authorization" value="Bearer ${#Project#access_token}"/>
+          </con:headers>
+          <con:credentials/>
+          <con:jmsConfig JMSDeliveryMode="NON_PERSISTENT"/>
+          <con:parameters>
+            <con:parameter name="estado" style="QUERY" default="" description="VIGENTE | SUSPENDIDO | CANCELADO | SINIESTRADO | VENCIDO">
+              <con:value/>
+            </con:parameter>
+            <con:parameter name="page" style="QUERY" default="0">
+              <con:value>0</con:value>
+            </con:parameter>
+            <con:parameter name="size" style="QUERY" default="20">
+              <con:value>20</con:value>
+            </con:parameter>
+          </con:parameters>
+        </con:request>
+      </con:method>
+
+      <con:method name="POST Contrato" method="POST" id="m-contratos-create">
+        <con:settings/>
+        <con:request name="Request 1" id="rq-contratos-create" mediaType="application/json">
+          <con:settings/>
+          <con:endpoint>http://localhost:8080/api</con:endpoint>
+          <con:request><![CDATA[{
+  "personaId": 1,
+  "planId": 1,
+  "sucursalId": 1,
+  "empleadoVendedorId": null,
+  "fechaInicio": "2026-06-01",
+  "precioContratado": 18000.00,
+  "mensualidadPactada": 300.00,
+  "notas": "Notas opcionales"
+}]]></con:request>
+          <con:headers>
+            <con:entry key="Authorization" value="Bearer ${#Project#access_token}"/>
+          </con:headers>
+          <con:credentials/>
+          <con:jmsConfig JMSDeliveryMode="NON_PERSISTENT"/>
+          <con:parameters/>
+        </con:request>
+      </con:method>
+
+      <con:resource name="{id}" path="/{id}" id="r-contratos-id">
+        <con:parameters>
+          <con:parameter name="id" style="TEMPLATE" default="1" description="ID del contrato">
+            <con:value>1</con:value>
+          </con:parameter>
+        </con:parameters>
+
+        <con:method name="GET Contrato by ID" method="GET" id="m-contratos-get">
+          <con:settings/>
+          <con:request name="Request 1" id="rq-contratos-get">
+            <con:settings/>
+            <con:endpoint>http://localhost:8080/api</con:endpoint>
+            <con:request/>
+            <con:headers>
+              <con:entry key="Authorization" value="Bearer ${#Project#access_token}"/>
+            </con:headers>
+            <con:credentials/>
+            <con:jmsConfig JMSDeliveryMode="NON_PERSISTENT"/>
+            <con:parameters/>
+          </con:request>
+        </con:method>
+
+        <con:method name="DELETE Contrato" method="DELETE" id="m-contratos-delete">
+          <con:settings/>
+          <con:request name="Request 1" id="rq-contratos-delete">
+            <con:settings/>
+            <con:endpoint>http://localhost:8080/api</con:endpoint>
+            <con:request/>
+            <con:headers>
+              <con:entry key="Authorization" value="Bearer ${#Project#access_token}"/>
+            </con:headers>
+            <con:credentials/>
+            <con:jmsConfig JMSDeliveryMode="NON_PERSISTENT"/>
+            <con:parameters/>
+          </con:request>
+        </con:method>
+
+        <!-- PATCH /contratos/{id}/estado?clave=... -->
+        <con:resource name="estado" path="/estado" id="r-contratos-estado">
+          <con:method name="PATCH Contrato Estado" method="PATCH" id="m-contratos-estado">
+            <con:settings/>
+            <con:request name="Request 1" id="rq-contratos-estado">
+              <con:settings/>
+              <con:endpoint>http://localhost:8080/api</con:endpoint>
+              <con:request/>
+              <con:headers>
+                <con:entry key="Authorization" value="Bearer ${#Project#access_token}"/>
+              </con:headers>
+              <con:credentials/>
+              <con:jmsConfig JMSDeliveryMode="NON_PERSISTENT"/>
+              <con:parameters>
+                <con:parameter name="clave" style="QUERY" default="VIGENTE"
+                    description="VIGENTE | SUSPENDIDO | CANCELADO | SINIESTRADO | VENCIDO">
+                  <con:value>VIGENTE</con:value>
+                </con:parameter>
+              </con:parameters>
+            </con:request>
+          </con:method>
+        </con:resource>
+
+      </con:resource>
+
+      <!-- GET /contratos/persona/{personaId} -->
+      <con:resource name="persona" path="/persona" id="r-contratos-persona">
+        <con:resource name="{personaId}" path="/{personaId}" id="r-contratos-persona-id">
+          <con:parameters>
+            <con:parameter name="personaId" style="TEMPLATE" default="1" description="ID de la persona titular">
+              <con:value>1</con:value>
+            </con:parameter>
+          </con:parameters>
+          <con:method name="GET Contratos by Persona" method="GET" id="m-contratos-by-persona">
+            <con:settings/>
+            <con:request name="Request 1" id="rq-contratos-by-persona">
+              <con:settings/>
+              <con:endpoint>http://localhost:8080/api</con:endpoint>
+              <con:request/>
+              <con:headers>
+                <con:entry key="Authorization" value="Bearer ${#Project#access_token}"/>
+              </con:headers>
+              <con:credentials/>
+              <con:jmsConfig JMSDeliveryMode="NON_PERSISTENT"/>
+              <con:parameters/>
+            </con:request>
+          </con:method>
+        </con:resource>
+      </con:resource>
+
+    </con:resource>
+
+    <!-- ── /cobros ── -->
+    <con:resource name="cobros" path="/cobros" id="r-cobros">
+
+      <con:resource name="{id}" path="/{id}" id="r-cobros-id">
+        <con:parameters>
+          <con:parameter name="id" style="TEMPLATE" default="1" description="ID del cobro">
+            <con:value>1</con:value>
+          </con:parameter>
+        </con:parameters>
+        <con:method name="GET Cobro by ID" method="GET" id="m-cobros-get">
+          <con:settings/>
+          <con:request name="Request 1" id="rq-cobros-get">
+            <con:settings/>
+            <con:endpoint>http://localhost:8080/api</con:endpoint>
+            <con:request/>
+            <con:headers>
+              <con:entry key="Authorization" value="Bearer ${#Project#access_token}"/>
+            </con:headers>
+            <con:credentials/>
+            <con:jmsConfig JMSDeliveryMode="NON_PERSISTENT"/>
+            <con:parameters/>
+          </con:request>
+        </con:method>
+      </con:resource>
+
+      <con:resource name="contrato" path="/contrato" id="r-cobros-contrato">
+        <con:resource name="{contratoId}" path="/{contratoId}" id="r-cobros-contrato-id">
+          <con:parameters>
+            <con:parameter name="contratoId" style="TEMPLATE" default="1" description="ID del contrato">
+              <con:value>1</con:value>
+            </con:parameter>
+          </con:parameters>
+
+          <con:method name="GET Cobros by Contrato" method="GET" id="m-cobros-by-contrato">
+            <con:settings/>
+            <con:request name="Request 1" id="rq-cobros-by-contrato">
+              <con:settings/>
+              <con:endpoint>http://localhost:8080/api</con:endpoint>
+              <con:request/>
+              <con:headers>
+                <con:entry key="Authorization" value="Bearer ${#Project#access_token}"/>
+              </con:headers>
+              <con:credentials/>
+              <con:jmsConfig JMSDeliveryMode="NON_PERSISTENT"/>
+              <con:parameters/>
+            </con:request>
+          </con:method>
+
+          <con:resource name="pendientes" path="/pendientes" id="r-cobros-pendientes">
+            <con:method name="GET Cobros Pendientes" method="GET" id="m-cobros-pendientes">
+              <con:settings/>
+              <con:request name="Request 1" id="rq-cobros-pendientes">
+                <con:settings/>
+                <con:endpoint>http://localhost:8080/api</con:endpoint>
+                <con:request/>
+                <con:headers>
+                  <con:entry key="Authorization" value="Bearer ${#Project#access_token}"/>
+                </con:headers>
+                <con:credentials/>
+                <con:jmsConfig JMSDeliveryMode="NON_PERSISTENT"/>
+                <con:parameters/>
+              </con:request>
+            </con:method>
+          </con:resource>
+
+        </con:resource>
+      </con:resource>
+
+    </con:resource>
+
+    <!-- ── /pagos ── -->
+    <con:resource name="pagos" path="/pagos" id="r-pagos">
+
+      <con:method name="GET Pagos" method="GET" id="m-pagos-list">
+        <con:settings/>
+        <con:request name="Request 1" id="rq-pagos-list">
+          <con:settings/>
+          <con:endpoint>http://localhost:8080/api</con:endpoint>
+          <con:request/>
+          <con:headers>
+            <con:entry key="Authorization" value="Bearer ${#Project#access_token}"/>
+          </con:headers>
+          <con:credentials/>
+          <con:jmsConfig JMSDeliveryMode="NON_PERSISTENT"/>
+          <con:parameters>
+            <con:parameter name="contratoId" style="QUERY" default="" description="Filtrar por contrato (opcional)">
+              <con:value/>
+            </con:parameter>
+            <con:parameter name="page" style="QUERY" default="0">
+              <con:value>0</con:value>
+            </con:parameter>
+            <con:parameter name="size" style="QUERY" default="20">
+              <con:value>20</con:value>
+            </con:parameter>
+          </con:parameters>
+        </con:request>
+      </con:method>
+
+      <con:method name="POST Pago" method="POST" id="m-pagos-create">
+        <con:settings/>
+        <con:request name="Request 1" id="rq-pagos-create" mediaType="application/json">
+          <con:settings/>
+          <con:endpoint>http://localhost:8080/api</con:endpoint>
+          <con:request><![CDATA[{
+  "contratoId": 1,
+  "cobroId": 1,
+  "metodoId": 4,
+  "montoPagado": 300.00,
+  "fechaPago": "2026-06-02T12:00:00-06:00",
+  "referenciaExterna": "TRX-001",
+  "notas": "Pago mensualidad junio"
+}]]></con:request>
+          <con:headers>
+            <con:entry key="Authorization" value="Bearer ${#Project#access_token}"/>
+          </con:headers>
+          <con:credentials/>
+          <con:jmsConfig JMSDeliveryMode="NON_PERSISTENT"/>
+          <con:parameters/>
+        </con:request>
+      </con:method>
+
+      <con:resource name="{id}" path="/{id}" id="r-pagos-id">
+        <con:parameters>
+          <con:parameter name="id" style="TEMPLATE" default="1" description="ID del pago">
+            <con:value>1</con:value>
+          </con:parameter>
+        </con:parameters>
+        <con:method name="GET Pago by ID" method="GET" id="m-pagos-get">
+          <con:settings/>
+          <con:request name="Request 1" id="rq-pagos-get">
+            <con:settings/>
+            <con:endpoint>http://localhost:8080/api</con:endpoint>
+            <con:request/>
+            <con:headers>
+              <con:entry key="Authorization" value="Bearer ${#Project#access_token}"/>
+            </con:headers>
+            <con:credentials/>
+            <con:jmsConfig JMSDeliveryMode="NON_PERSISTENT"/>
+            <con:parameters/>
+          </con:request>
+        </con:method>
+      </con:resource>
+
+      <con:resource name="contrato" path="/contrato" id="r-pagos-contrato">
+        <con:resource name="{contratoId}" path="/{contratoId}" id="r-pagos-contrato-id">
+          <con:parameters>
+            <con:parameter name="contratoId" style="TEMPLATE" default="1" description="ID del contrato">
+              <con:value>1</con:value>
+            </con:parameter>
+          </con:parameters>
+          <con:method name="GET Pagos by Contrato" method="GET" id="m-pagos-by-contrato">
+            <con:settings/>
+            <con:request name="Request 1" id="rq-pagos-by-contrato">
+              <con:settings/>
+              <con:endpoint>http://localhost:8080/api</con:endpoint>
+              <con:request/>
+              <con:headers>
+                <con:entry key="Authorization" value="Bearer ${#Project#access_token}"/>
+              </con:headers>
+              <con:credentials/>
+              <con:jmsConfig JMSDeliveryMode="NON_PERSISTENT"/>
+              <con:parameters/>
+            </con:request>
+          </con:method>
+        </con:resource>
+      </con:resource>
+
+    </con:resource>
+
+    <!-- ── /notificaciones ── -->
+    <con:resource name="notificaciones" path="/notificaciones" id="r-notif">
+
+      <con:method name="GET Notificaciones" method="GET" id="m-notif-list">
+        <con:settings/>
+        <con:request name="Request 1" id="rq-notif-list">
+          <con:settings/>
+          <con:endpoint>http://localhost:8080/api</con:endpoint>
+          <con:request/>
+          <con:headers>
+            <con:entry key="Authorization" value="Bearer ${#Project#access_token}"/>
+          </con:headers>
+          <con:credentials/>
+          <con:jmsConfig JMSDeliveryMode="NON_PERSISTENT"/>
+          <con:parameters>
+            <con:parameter name="page" style="QUERY" default="0">
+              <con:value>0</con:value>
+            </con:parameter>
+            <con:parameter name="size" style="QUERY" default="20">
+              <con:value>20</con:value>
+            </con:parameter>
+          </con:parameters>
+        </con:request>
+      </con:method>
+
+      <con:resource name="no-leidas" path="/no-leidas" id="r-notif-no-leidas">
+        <con:method name="GET No Leidas Count" method="GET" id="m-notif-no-leidas">
+          <con:settings/>
+          <con:request name="Request 1" id="rq-notif-no-leidas">
+            <con:settings/>
+            <con:endpoint>http://localhost:8080/api</con:endpoint>
+            <con:request/>
+            <con:headers>
+              <con:entry key="Authorization" value="Bearer ${#Project#access_token}"/>
+            </con:headers>
+            <con:credentials/>
+            <con:jmsConfig JMSDeliveryMode="NON_PERSISTENT"/>
+            <con:parameters/>
+          </con:request>
+        </con:method>
+      </con:resource>
+
+      <con:resource name="marcar-leidas" path="/marcar-leidas" id="r-notif-marcar">
+        <con:method name="PATCH Marcar Leidas" method="PATCH" id="m-notif-marcar">
+          <con:settings/>
+          <con:request name="Request 1" id="rq-notif-marcar">
+            <con:settings/>
+            <con:endpoint>http://localhost:8080/api</con:endpoint>
+            <con:request/>
+            <con:headers>
+              <con:entry key="Authorization" value="Bearer ${#Project#access_token}"/>
+            </con:headers>
+            <con:credentials/>
+            <con:jmsConfig JMSDeliveryMode="NON_PERSISTENT"/>
+            <con:parameters/>
+          </con:request>
+        </con:method>
+      </con:resource>
+
+    </con:resource>
+
+  </con:interface>
+
+  <!-- ═══════════════════════════════════════════════════════
+       TEST SUITE 1 – FLUJO DE PRUEBA RECOMENDADO
+       Sigue los 10 pasos de la sección 11 del documento.
+       Ejecutar en orden secuencial con failOnError=true.
+       ═══════════════════════════════════════════════════════ -->
+  <con:testSuite id="ts-flujo-recomendado" name="Flujo de Prueba Recomendado" runType="SEQUENTIAL">
+    <con:settings/>
+
+    <con:testCase
+        id="tc-flujo-completo"
+        name="Flujo Completo"
+        failOnError="true"
+        failTestCaseOnErrors="true"
+        keepSession="false"
+        maxResults="0"
+        searchProperties="true">
+      <con:settings/>
+
+      <!-- ─────────────────────────────────────────── -->
+      <!-- Paso 1: POST /auth/login                    -->
+      <!-- ─────────────────────────────────────────── -->
+      <con:testStep type="restrequest" name="01 - Login" id="step-01-login">
+        <con:settings/>
+        <con:config xsi:type="con:RestRequestStep"
+            xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+          <con:interface>SHSM API REST</con:interface>
+          <con:operation>Login</con:operation>
+          <con:request xsi:type="con:RestRequest"
+              name="Request 1"
+              id="sreq-01"
+              mediaType="application/json">
+            <con:settings/>
+            <con:endpoint>http://localhost:8080/api</con:endpoint>
+            <con:request><![CDATA[{
+  "username": "admin",
+  "password": "Admin123!"
+}]]></con:request>
+            <con:credentials/>
+            <con:jmsConfig JMSDeliveryMode="NON_PERSISTENT"/>
+            <con:parameters/>
+            <con:restMethod>Login</con:restMethod>
+            <con:path>/auth/login</con:path>
+          </con:request>
+        </con:config>
+      </con:testStep>
+
+      <!-- ─────────────────────────────────────────── -->
+      <!-- Paso 2: Groovy – Capturar access_token      -->
+      <!-- ─────────────────────────────────────────── -->
+      <con:testStep type="groovy" name="02 - Capturar Token" id="step-02-token">
+        <con:settings/>
+        <con:config>
+          <con:script><![CDATA[
+// ── Captura accessToken y refreshToken del response del Login ──
+def response = context.expand('${01 - Login#Response}')
+
+if (!response) {
+    log.error "No hay respuesta del paso Login. Verifica que el servidor esté levantado."
+    testRunner.fail("No hay respuesta del Login")
+    return
+}
+
+def json
+try {
+    json = new groovy.json.JsonSlurper().parseText(response)
+} catch (Exception e) {
+    log.error "Error parseando JSON: " + e.message
+    testRunner.fail("Respuesta no es JSON válido: " + response)
+    return
+}
+
+def token   = json.accessToken
+def refresh = json.refreshToken
+
+if (!token) {
+    log.error "No se encontró 'accessToken' en la respuesta: " + response
+    testRunner.fail("Login fallido – revisa credenciales o el servidor")
+    return
+}
+
+testRunner.testCase.testSuite.project.setPropertyValue("access_token",  token)
+testRunner.testCase.testSuite.project.setPropertyValue("refresh_token", refresh ?: "")
+
+log.info "✓ access_token  capturado: " + token.substring(0, Math.min(30, token.size())) + "..."
+log.info "✓ refresh_token capturado: " + (refresh ? refresh.substring(0, Math.min(20, refresh.size())) + "..." : "(vacío)")
+]]></con:script>
+        </con:config>
+      </con:testStep>
+
+      <!-- ─────────────────────────────────────────── -->
+      <!-- Paso 3: GET /catalogos/metodos-pago         -->
+      <!-- ─────────────────────────────────────────── -->
+      <con:testStep type="restrequest" name="03 - GET Métodos de Pago" id="step-03-metodos">
+        <con:settings/>
+        <con:config xsi:type="con:RestRequestStep"
+            xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+          <con:interface>SHSM API REST</con:interface>
+          <con:operation>GET Metodos Pago</con:operation>
+          <con:request xsi:type="con:RestRequest" name="Request 1" id="sreq-03">
+            <con:settings/>
+            <con:endpoint>http://localhost:8080/api</con:endpoint>
+            <con:request/>
+            <con:headers>
+              <con:entry key="Authorization" value="Bearer ${#Project#access_token}"/>
+            </con:headers>
+            <con:credentials/>
+            <con:jmsConfig JMSDeliveryMode="NON_PERSISTENT"/>
+            <con:parameters/>
+            <con:restMethod>GET Metodos Pago</con:restMethod>
+            <con:path>/catalogos/metodos-pago</con:path>
+          </con:request>
+        </con:config>
+      </con:testStep>
+
+      <!-- ─────────────────────────────────────────── -->
+      <!-- Paso 4: GET /planes                         -->
+      <!-- ─────────────────────────────────────────── -->
+      <con:testStep type="restrequest" name="04 - GET Planes" id="step-04-planes">
+        <con:settings/>
+        <con:config xsi:type="con:RestRequestStep"
+            xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+          <con:interface>SHSM API REST</con:interface>
+          <con:operation>GET Planes</con:operation>
+          <con:request xsi:type="con:RestRequest" name="Request 1" id="sreq-04">
+            <con:settings/>
+            <con:endpoint>http://localhost:8080/api</con:endpoint>
+            <con:request/>
+            <con:credentials/>
+            <con:jmsConfig JMSDeliveryMode="NON_PERSISTENT"/>
+            <con:parameters/>
+            <con:restMethod>GET Planes</con:restMethod>
+            <con:path>/planes</con:path>
+          </con:request>
+        </con:config>
+      </con:testStep>
+
+      <!-- ─────────────────────────────────────────── -->
+      <!-- Paso 5: GET /catalogos/sucursales           -->
+      <!-- ─────────────────────────────────────────── -->
+      <con:testStep type="restrequest" name="05 - GET Sucursales" id="step-05-sucursales">
+        <con:settings/>
+        <con:config xsi:type="con:RestRequestStep"
+            xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+          <con:interface>SHSM API REST</con:interface>
+          <con:operation>GET Sucursales</con:operation>
+          <con:request xsi:type="con:RestRequest" name="Request 1" id="sreq-05">
+            <con:settings/>
+            <con:endpoint>http://localhost:8080/api</con:endpoint>
+            <con:request/>
+            <con:headers>
+              <con:entry key="Authorization" value="Bearer ${#Project#access_token}"/>
+            </con:headers>
+            <con:credentials/>
+            <con:jmsConfig JMSDeliveryMode="NON_PERSISTENT"/>
+            <con:parameters/>
+            <con:restMethod>GET Sucursales</con:restMethod>
+            <con:path>/catalogos/sucursales</con:path>
+          </con:request>
+        </con:config>
+      </con:testStep>
+
+      <!-- ─────────────────────────────────────────── -->
+      <!-- Paso 6: POST /personas                      -->
+      <!-- NOTA: anota el "id" devuelto en la respuesta-->
+      <!--        y actualiza personaId en el Paso 7   -->
+      <!-- ─────────────────────────────────────────── -->
+      <con:testStep type="restrequest" name="06 - POST Persona (Titular)" id="step-06-persona">
+        <con:settings/>
+        <con:config xsi:type="con:RestRequestStep"
+            xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+          <con:interface>SHSM API REST</con:interface>
+          <con:operation>POST Persona</con:operation>
+          <con:request xsi:type="con:RestRequest" name="Request 1" id="sreq-06" mediaType="application/json">
+            <con:settings/>
+            <con:endpoint>http://localhost:8080/api</con:endpoint>
+            <con:request><![CDATA[{
+  "nombre": "Juan",
+  "apPaterno": "García",
+  "apMaterno": "López",
+  "fechaNacimiento": "1985-03-15",
+  "sexo": "M",
+  "curp": "GALJ850315HDFRZN04",
+  "rfc": "GALJ850315AB1",
+  "telefono": "5512345678",
+  "correo": "juan@example.com",
+  "calle": "Av. Principal",
+  "numeroExt": "10",
+  "colonia": "Centro",
+  "municipio": "Iztapalapa",
+  "estado": "Ciudad de México",
+  "codigoPostal": "09510",
+  "pais": "México"
+}]]></con:request>
+            <con:headers>
+              <con:entry key="Authorization" value="Bearer ${#Project#access_token}"/>
+            </con:headers>
+            <con:credentials/>
+            <con:jmsConfig JMSDeliveryMode="NON_PERSISTENT"/>
+            <con:parameters/>
+            <con:restMethod>POST Persona</con:restMethod>
+            <con:path>/personas</con:path>
+          </con:request>
+        </con:config>
+      </con:testStep>
+
+      <!-- ─────────────────────────────────────────── -->
+      <!-- Paso 7: POST /contratos                     -->
+      <!-- Genera cobros mensuales automáticamente     -->
+      <!-- ─────────────────────────────────────────── -->
+      <con:testStep type="restrequest" name="07 - POST Contrato" id="step-07-contrato">
+        <con:settings/>
+        <con:config xsi:type="con:RestRequestStep"
+            xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+          <con:interface>SHSM API REST</con:interface>
+          <con:operation>POST Contrato</con:operation>
+          <con:request xsi:type="con:RestRequest" name="Request 1" id="sreq-07" mediaType="application/json">
+            <con:settings/>
+            <con:endpoint>http://localhost:8080/api</con:endpoint>
+            <con:request><![CDATA[{
+  "personaId": 1,
+  "planId": 1,
+  "sucursalId": 1,
+  "empleadoVendedorId": null,
+  "fechaInicio": "2026-06-01",
+  "precioContratado": 18000.00,
+  "mensualidadPactada": 300.00,
+  "notas": "Contrato de prueba"
+}]]></con:request>
+            <con:headers>
+              <con:entry key="Authorization" value="Bearer ${#Project#access_token}"/>
+            </con:headers>
+            <con:credentials/>
+            <con:jmsConfig JMSDeliveryMode="NON_PERSISTENT"/>
+            <con:parameters/>
+            <con:restMethod>POST Contrato</con:restMethod>
+            <con:path>/contratos</con:path>
+          </con:request>
+        </con:config>
+      </con:testStep>
+
+      <!-- ─────────────────────────────────────────── -->
+      <!-- Paso 8: GET /cobros/contrato/{contratoId}   -->
+      <!-- Ajusta el ID en la path según respuesta     -->
+      <!-- ─────────────────────────────────────────── -->
+      <con:testStep type="restrequest" name="08 - GET Cobros del Contrato" id="step-08-cobros">
+        <con:settings/>
+        <con:config xsi:type="con:RestRequestStep"
+            xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+          <con:interface>SHSM API REST</con:interface>
+          <con:operation>GET Cobros by Contrato</con:operation>
+          <con:request xsi:type="con:RestRequest" name="Request 1" id="sreq-08">
+            <con:settings/>
+            <con:endpoint>http://localhost:8080/api</con:endpoint>
+            <con:request/>
+            <con:headers>
+              <con:entry key="Authorization" value="Bearer ${#Project#access_token}"/>
+            </con:headers>
+            <con:credentials/>
+            <con:jmsConfig JMSDeliveryMode="NON_PERSISTENT"/>
+            <con:parameters>
+              <con:parameter name="contratoId" style="TEMPLATE" default="1">
+                <con:value>1</con:value>
+              </con:parameter>
+            </con:parameters>
+            <con:restMethod>GET Cobros by Contrato</con:restMethod>
+            <con:path>/cobros/contrato/1</con:path>
+          </con:request>
+        </con:config>
+      </con:testStep>
+
+      <!-- ─────────────────────────────────────────── -->
+      <!-- Paso 9: POST /pagos                         -->
+      <!-- Registra el pago de la primera mensualidad  -->
+      <!-- ─────────────────────────────────────────── -->
+      <con:testStep type="restrequest" name="09 - POST Pago" id="step-09-pago">
+        <con:settings/>
+        <con:config xsi:type="con:RestRequestStep"
+            xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+          <con:interface>SHSM API REST</con:interface>
+          <con:operation>POST Pago</con:operation>
+          <con:request xsi:type="con:RestRequest" name="Request 1" id="sreq-09" mediaType="application/json">
+            <con:settings/>
+            <con:endpoint>http://localhost:8080/api</con:endpoint>
+            <con:request><![CDATA[{
+  "contratoId": 1,
+  "cobroId": 1,
+  "metodoId": 4,
+  "montoPagado": 300.00,
+  "fechaPago": "2026-06-02T12:00:00-06:00",
+  "referenciaExterna": "TRX-001",
+  "notas": "Pago mensualidad junio"
+}]]></con:request>
+            <con:headers>
+              <con:entry key="Authorization" value="Bearer ${#Project#access_token}"/>
+            </con:headers>
+            <con:credentials/>
+            <con:jmsConfig JMSDeliveryMode="NON_PERSISTENT"/>
+            <con:parameters/>
+            <con:restMethod>POST Pago</con:restMethod>
+            <con:path>/pagos</con:path>
+          </con:request>
+        </con:config>
+      </con:testStep>
+
+      <!-- ─────────────────────────────────────────── -->
+      <!-- Paso 10: GET /pagos/contrato/{contratoId}   -->
+      <!-- Verifica que el pago quedó registrado       -->
+      <!-- ─────────────────────────────────────────── -->
+      <con:testStep type="restrequest" name="10 - GET Pagos del Contrato" id="step-10-pagos">
+        <con:settings/>
+        <con:config xsi:type="con:RestRequestStep"
+            xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+          <con:interface>SHSM API REST</con:interface>
+          <con:operation>GET Pagos by Contrato</con:operation>
+          <con:request xsi:type="con:RestRequest" name="Request 1" id="sreq-10">
+            <con:settings/>
+            <con:endpoint>http://localhost:8080/api</con:endpoint>
+            <con:request/>
+            <con:headers>
+              <con:entry key="Authorization" value="Bearer ${#Project#access_token}"/>
+            </con:headers>
+            <con:credentials/>
+            <con:jmsConfig JMSDeliveryMode="NON_PERSISTENT"/>
+            <con:parameters>
+              <con:parameter name="contratoId" style="TEMPLATE" default="1">
+                <con:value>1</con:value>
+              </con:parameter>
+            </con:parameters>
+            <con:restMethod>GET Pagos by Contrato</con:restMethod>
+            <con:path>/pagos/contrato/1</con:path>
+          </con:request>
+        </con:config>
+      </con:testStep>
+
+      <!-- ─────────────────────────────────────────── -->
+      <!-- Paso 11: GET /notificaciones                -->
+      <!-- Verifica notificaciones generadas           -->
+      <!-- ─────────────────────────────────────────── -->
+      <con:testStep type="restrequest" name="11 - GET Notificaciones" id="step-11-notif">
+        <con:settings/>
+        <con:config xsi:type="con:RestRequestStep"
+            xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+          <con:interface>SHSM API REST</con:interface>
+          <con:operation>GET Notificaciones</con:operation>
+          <con:request xsi:type="con:RestRequest" name="Request 1" id="sreq-11">
+            <con:settings/>
+            <con:endpoint>http://localhost:8080/api</con:endpoint>
+            <con:request/>
+            <con:headers>
+              <con:entry key="Authorization" value="Bearer ${#Project#access_token}"/>
+            </con:headers>
+            <con:credentials/>
+            <con:jmsConfig JMSDeliveryMode="NON_PERSISTENT"/>
+            <con:parameters/>
+            <con:restMethod>GET Notificaciones</con:restMethod>
+            <con:path>/notificaciones</con:path>
+          </con:request>
+        </con:config>
+      </con:testStep>
+
+    </con:testCase>
+  </con:testSuite>
+
+  <!-- ═══════════════════════════════════════════════════════
+       TEST SUITE 2 – CATÁLOGOS
+       ═══════════════════════════════════════════════════════ -->
+  <con:testSuite id="ts-catalogos" name="Catálogos" runType="SEQUENTIAL">
+    <con:settings/>
+
+    <con:testCase id="tc-catalogos" name="Todos los catálogos" failOnError="false" failTestCaseOnErrors="false" keepSession="false" maxResults="0" searchProperties="true">
+      <con:settings/>
+
+      <con:testStep type="restrequest" name="GET Roles" id="s-cat-roles">
+        <con:settings/>
+        <con:config xsi:type="con:RestRequestStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+          <con:interface>SHSM API REST</con:interface>
+          <con:operation>GET Roles</con:operation>
+          <con:request xsi:type="con:RestRequest" name="Request 1" id="sreq-cat-roles">
+            <con:settings/>
+            <con:endpoint>http://localhost:8080/api</con:endpoint>
+            <con:request/>
+            <con:headers><con:entry key="Authorization" value="Bearer ${#Project#access_token}"/></con:headers>
+            <con:credentials/>
+            <con:jmsConfig JMSDeliveryMode="NON_PERSISTENT"/>
+            <con:parameters/>
+            <con:restMethod>GET Roles</con:restMethod>
+            <con:path>/catalogos/roles</con:path>
+          </con:request>
+        </con:config>
+      </con:testStep>
+
+      <con:testStep type="restrequest" name="GET Parentescos" id="s-cat-parentescos">
+        <con:settings/>
+        <con:config xsi:type="con:RestRequestStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+          <con:interface>SHSM API REST</con:interface>
+          <con:operation>GET Parentescos</con:operation>
+          <con:request xsi:type="con:RestRequest" name="Request 1" id="sreq-cat-parentescos">
+            <con:settings/>
+            <con:endpoint>http://localhost:8080/api</con:endpoint>
+            <con:request/>
+            <con:headers><con:entry key="Authorization" value="Bearer ${#Project#access_token}"/></con:headers>
+            <con:credentials/>
+            <con:jmsConfig JMSDeliveryMode="NON_PERSISTENT"/>
+            <con:parameters/>
+            <con:restMethod>GET Parentescos</con:restMethod>
+            <con:path>/catalogos/parentescos</con:path>
+          </con:request>
+        </con:config>
+      </con:testStep>
+
+      <con:testStep type="restrequest" name="GET Estados Contrato" id="s-cat-est-cont">
+        <con:settings/>
+        <con:config xsi:type="con:RestRequestStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+          <con:interface>SHSM API REST</con:interface>
+          <con:operation>GET Estados Contrato</con:operation>
+          <con:request xsi:type="con:RestRequest" name="Request 1" id="sreq-cat-est-cont">
+            <con:settings/>
+            <con:endpoint>http://localhost:8080/api</con:endpoint>
+            <con:request/>
+            <con:headers><con:entry key="Authorization" value="Bearer ${#Project#access_token}"/></con:headers>
+            <con:credentials/>
+            <con:jmsConfig JMSDeliveryMode="NON_PERSISTENT"/>
+            <con:parameters/>
+            <con:restMethod>GET Estados Contrato</con:restMethod>
+            <con:path>/catalogos/estados-contrato</con:path>
+          </con:request>
+        </con:config>
+      </con:testStep>
+
+      <con:testStep type="restrequest" name="GET Estados Pago" id="s-cat-est-pago">
+        <con:settings/>
+        <con:config xsi:type="con:RestRequestStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+          <con:interface>SHSM API REST</con:interface>
+          <con:operation>GET Estados Pago</con:operation>
+          <con:request xsi:type="con:RestRequest" name="Request 1" id="sreq-cat-est-pago">
+            <con:settings/>
+            <con:endpoint>http://localhost:8080/api</con:endpoint>
+            <con:request/>
+            <con:headers><con:entry key="Authorization" value="Bearer ${#Project#access_token}"/></con:headers>
+            <con:credentials/>
+            <con:jmsConfig JMSDeliveryMode="NON_PERSISTENT"/>
+            <con:parameters/>
+            <con:restMethod>GET Estados Pago</con:restMethod>
+            <con:path>/catalogos/estados-pago</con:path>
+          </con:request>
+        </con:config>
+      </con:testStep>
+
+      <con:testStep type="restrequest" name="GET Métodos Pago" id="s-cat-met-pago">
+        <con:settings/>
+        <con:config xsi:type="con:RestRequestStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+          <con:interface>SHSM API REST</con:interface>
+          <con:operation>GET Metodos Pago</con:operation>
+          <con:request xsi:type="con:RestRequest" name="Request 1" id="sreq-cat-met-pago">
+            <con:settings/>
+            <con:endpoint>http://localhost:8080/api</con:endpoint>
+            <con:request/>
+            <con:headers><con:entry key="Authorization" value="Bearer ${#Project#access_token}"/></con:headers>
+            <con:credentials/>
+            <con:jmsConfig JMSDeliveryMode="NON_PERSISTENT"/>
+            <con:parameters/>
+            <con:restMethod>GET Metodos Pago</con:restMethod>
+            <con:path>/catalogos/metodos-pago</con:path>
+          </con:request>
+        </con:config>
+      </con:testStep>
+
+      <con:testStep type="restrequest" name="GET Tipos Documento" id="s-cat-tipos-doc">
+        <con:settings/>
+        <con:config xsi:type="con:RestRequestStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+          <con:interface>SHSM API REST</con:interface>
+          <con:operation>GET Tipos Documento</con:operation>
+          <con:request xsi:type="con:RestRequest" name="Request 1" id="sreq-cat-tipos-doc">
+            <con:settings/>
+            <con:endpoint>http://localhost:8080/api</con:endpoint>
+            <con:request/>
+            <con:headers><con:entry key="Authorization" value="Bearer ${#Project#access_token}"/></con:headers>
+            <con:credentials/>
+            <con:jmsConfig JMSDeliveryMode="NON_PERSISTENT"/>
+            <con:parameters/>
+            <con:restMethod>GET Tipos Documento</con:restMethod>
+            <con:path>/catalogos/tipos-documento</con:path>
+          </con:request>
+        </con:config>
+      </con:testStep>
+
+      <con:testStep type="restrequest" name="GET Categorías Artículo" id="s-cat-categorias">
+        <con:settings/>
+        <con:config xsi:type="con:RestRequestStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+          <con:interface>SHSM API REST</con:interface>
+          <con:operation>GET Categorias Articulo</con:operation>
+          <con:request xsi:type="con:RestRequest" name="Request 1" id="sreq-cat-categorias">
+            <con:settings/>
+            <con:endpoint>http://localhost:8080/api</con:endpoint>
+            <con:request/>
+            <con:headers><con:entry key="Authorization" value="Bearer ${#Project#access_token}"/></con:headers>
+            <con:credentials/>
+            <con:jmsConfig JMSDeliveryMode="NON_PERSISTENT"/>
+            <con:parameters/>
+            <con:restMethod>GET Categorias Articulo</con:restMethod>
+            <con:path>/catalogos/categorias-articulo</con:path>
+          </con:request>
+        </con:config>
+      </con:testStep>
+
+      <con:testStep type="restrequest" name="GET Sucursales" id="s-cat-sucursales">
+        <con:settings/>
+        <con:config xsi:type="con:RestRequestStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+          <con:interface>SHSM API REST</con:interface>
+          <con:operation>GET Sucursales</con:operation>
+          <con:request xsi:type="con:RestRequest" name="Request 1" id="sreq-cat-sucursales">
+            <con:settings/>
+            <con:endpoint>http://localhost:8080/api</con:endpoint>
+            <con:request/>
+            <con:headers><con:entry key="Authorization" value="Bearer ${#Project#access_token}"/></con:headers>
+            <con:credentials/>
+            <con:jmsConfig JMSDeliveryMode="NON_PERSISTENT"/>
+            <con:parameters/>
+            <con:restMethod>GET Sucursales</con:restMethod>
+            <con:path>/catalogos/sucursales</con:path>
+          </con:request>
+        </con:config>
+      </con:testStep>
+
+    </con:testCase>
+  </con:testSuite>
+
+  <!-- ═══════════════════════════════════════════════════════
+       TEST SUITE 3 – AUTENTICACIÓN
+       ═══════════════════════════════════════════════════════ -->
+  <con:testSuite id="ts-auth" name="Autenticación" runType="SEQUENTIAL">
+    <con:settings/>
+
+    <con:testCase id="tc-auth" name="Auth – Login · Refresh · Logout" failOnError="false" failTestCaseOnErrors="false" keepSession="false" maxResults="0" searchProperties="true">
+      <con:settings/>
+
+      <con:testStep type="restrequest" name="POST Login" id="sa-login">
+        <con:settings/>
+        <con:config xsi:type="con:RestRequestStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+          <con:interface>SHSM API REST</con:interface>
+          <con:operation>Login</con:operation>
+          <con:request xsi:type="con:RestRequest" name="Request 1" id="sreq-sa-login" mediaType="application/json">
+            <con:settings/>
+            <con:endpoint>http://localhost:8080/api</con:endpoint>
+            <con:request><![CDATA[{"username": "admin", "password": "Admin123!"}]]></con:request>
+            <con:credentials/>
+            <con:jmsConfig JMSDeliveryMode="NON_PERSISTENT"/>
+            <con:parameters/>
+            <con:restMethod>Login</con:restMethod>
+            <con:path>/auth/login</con:path>
+          </con:request>
+        </con:config>
+      </con:testStep>
+
+      <con:testStep type="restrequest" name="POST Refresh" id="sa-refresh">
+        <con:settings/>
+        <con:config xsi:type="con:RestRequestStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+          <con:interface>SHSM API REST</con:interface>
+          <con:operation>Refresh Token</con:operation>
+          <con:request xsi:type="con:RestRequest" name="Request 1" id="sreq-sa-refresh" mediaType="application/json">
+            <con:settings/>
+            <con:endpoint>http://localhost:8080/api</con:endpoint>
+            <con:request><![CDATA[{"refreshToken": "${#Project#refresh_token}"}]]></con:request>
+            <con:credentials/>
+            <con:jmsConfig JMSDeliveryMode="NON_PERSISTENT"/>
+            <con:parameters/>
+            <con:restMethod>Refresh Token</con:restMethod>
+            <con:path>/auth/refresh</con:path>
+          </con:request>
+        </con:config>
+      </con:testStep>
+
+      <con:testStep type="restrequest" name="POST Logout" id="sa-logout">
+        <con:settings/>
+        <con:config xsi:type="con:RestRequestStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+          <con:interface>SHSM API REST</con:interface>
+          <con:operation>Logout</con:operation>
+          <con:request xsi:type="con:RestRequest" name="Request 1" id="sreq-sa-logout" mediaType="application/json">
+            <con:settings/>
+            <con:endpoint>http://localhost:8080/api</con:endpoint>
+            <con:request><![CDATA[{"refreshToken": "${#Project#refresh_token}"}]]></con:request>
+            <con:headers><con:entry key="Authorization" value="Bearer ${#Project#access_token}"/></con:headers>
+            <con:credentials/>
+            <con:jmsConfig JMSDeliveryMode="NON_PERSISTENT"/>
+            <con:parameters/>
+            <con:restMethod>Logout</con:restMethod>
+            <con:path>/auth/logout</con:path>
+          </con:request>
+        </con:config>
+      </con:testStep>
+
+    </con:testCase>
+  </con:testSuite>
+
+  <!-- ═══════════════════════════════════════════════════════
+       PROPIEDADES DEL PROYECTO
+       ${#Project#access_token}  – se rellena automáticamente
+       ${#Project#refresh_token} – se rellena automáticamente
+       ═══════════════════════════════════════════════════════ -->
+  <con:properties>
+    <con:property>
+      <con:name>access_token</con:name>
+      <con:value/>
+    </con:property>
+    <con:property>
+      <con:name>refresh_token</con:name>
+      <con:value/>
+    </con:property>
+  </con:properties>
+
+  <con:wssContainer/>
+  <con:oAuth2ProfileContainer/>
+  <con:oAuth1ProfileContainer/>
+
+</con:soapui-project>

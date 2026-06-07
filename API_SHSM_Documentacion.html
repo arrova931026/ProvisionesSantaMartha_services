@@ -1,0 +1,677 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <title>API REST – Sociedad Humanista Santa Martha</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Segoe UI', Arial, sans-serif; font-size: 12px; color: #1a1a1a; background: #fff; }
+
+    /* ── Portada ── */
+    .cover {
+      page-break-after: always;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      height: 100vh; text-align: center;
+      background: linear-gradient(135deg, #1e3a5f 0%, #2e6da4 100%);
+      color: #fff; padding: 60px;
+    }
+    .cover h1 { font-size: 32px; font-weight: 700; letter-spacing: 1px; margin-bottom: 12px; }
+    .cover h2 { font-size: 18px; font-weight: 400; opacity: .85; margin-bottom: 32px; }
+    .cover .subtitle { font-size: 14px; opacity: .7; }
+    .cover .badge {
+      display: inline-block; margin-top: 40px;
+      background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.35);
+      border-radius: 24px; padding: 8px 24px; font-size: 13px;
+    }
+
+    /* ── Encabezado de sección ── */
+    .section { padding: 32px 48px; page-break-inside: avoid; }
+    .section-title {
+      font-size: 20px; font-weight: 700; color: #1e3a5f;
+      border-bottom: 3px solid #2e6da4; padding-bottom: 8px; margin-bottom: 20px;
+    }
+
+    /* ── Bloques de endpoint ── */
+    .endpoint {
+      margin-bottom: 18px; border: 1px solid #e0e0e0;
+      border-radius: 6px; overflow: hidden;
+    }
+    .endpoint-header {
+      display: flex; align-items: center; gap: 12px;
+      padding: 10px 16px; background: #f5f7fa;
+      border-bottom: 1px solid #e0e0e0;
+    }
+    .method {
+      display: inline-block; padding: 3px 10px; border-radius: 4px;
+      font-weight: 700; font-size: 11px; letter-spacing: .5px; min-width: 60px; text-align: center;
+    }
+    .GET    { background: #e3f2fd; color: #1565c0; }
+    .POST   { background: #e8f5e9; color: #2e7d32; }
+    .PUT    { background: #fff3e0; color: #e65100; }
+    .PATCH  { background: #f3e5f5; color: #6a1b9a; }
+    .DELETE { background: #ffebee; color: #c62828; }
+
+    .endpoint-path { font-family: 'Courier New', monospace; font-size: 13px; font-weight: 600; color: #1a1a1a; }
+    .endpoint-desc { font-size: 11px; color: #666; margin-left: auto; }
+
+    .endpoint-body { padding: 12px 16px; }
+    .endpoint-body p { margin-bottom: 6px; line-height: 1.6; }
+    .tag { display: inline-block; padding: 2px 8px; border-radius: 12px; font-size: 10px; font-weight: 600; }
+    .tag-auth    { background: #fff9c4; color: #f57f17; }
+    .tag-admin   { background: #fce4ec; color: #880e4f; }
+    .tag-agente  { background: #e8eaf6; color: #283593; }
+    .tag-public  { background: #e8f5e9; color: #1b5e20; }
+
+    /* ── JSON de ejemplo ── */
+    .json-block {
+      background: #1e2d3d; color: #a8d8a8; border-radius: 4px;
+      padding: 12px 16px; margin-top: 8px;
+      font-family: 'Courier New', monospace; font-size: 11px; line-height: 1.7;
+      white-space: pre-wrap; overflow-x: auto;
+    }
+    .json-key   { color: #9ecbff; }
+    .json-str   { color: #a8d8a8; }
+    .json-num   { color: #f8c555; }
+    .json-bool  { color: #f97583; }
+
+    /* ── Tabla de parámetros ── */
+    table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 11px; }
+    th { background: #1e3a5f; color: #fff; padding: 7px 10px; text-align: left; }
+    td { padding: 6px 10px; border-bottom: 1px solid #eee; }
+    tr:last-child td { border-bottom: none; }
+    tr:nth-child(even) td { background: #f9f9f9; }
+
+    /* ── Nota informativa ── */
+    .note {
+      background: #e3f2fd; border-left: 4px solid #2e6da4;
+      border-radius: 4px; padding: 10px 14px; margin: 12px 0;
+      font-size: 11px; line-height: 1.6;
+    }
+    .note strong { color: #1565c0; }
+    .warn {
+      background: #fff3e0; border-left: 4px solid #ff9800;
+      border-radius: 4px; padding: 10px 14px; margin: 12px 0;
+      font-size: 11px;
+    }
+
+    /* ── TOC (índice) ── */
+    .toc { padding: 40px 48px; page-break-after: always; }
+    .toc h2 { font-size: 22px; color: #1e3a5f; margin-bottom: 24px; }
+    .toc ol { padding-left: 20px; line-height: 2.2; font-size: 13px; }
+    .toc ol li { color: #1e3a5f; font-weight: 600; }
+    .toc ol li span { font-weight: 400; color: #444; font-size: 12px; }
+
+    /* ── Flujo SoapUI ── */
+    .step {
+      display: flex; gap: 14px; margin-bottom: 14px; align-items: flex-start;
+    }
+    .step-num {
+      min-width: 28px; height: 28px; border-radius: 50%;
+      background: #2e6da4; color: #fff;
+      display: flex; align-items: center; justify-content: center;
+      font-weight: 700; font-size: 13px; flex-shrink: 0;
+    }
+    .step-content { flex: 1; }
+    .step-content strong { color: #1e3a5f; }
+
+    /* ── Print ── */
+    @media print {
+      .cover { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+      .section { page-break-inside: avoid; }
+      .endpoint { page-break-inside: avoid; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════════════════ PORTADA -->
+<div class="cover">
+  <h1>API REST</h1>
+  <h2>Sociedad Humanista Santa Martha S.A. de C.V.</h2>
+  <p class="subtitle">Documentación de servicios web para consumo con SoapUI</p>
+  <div class="badge">Versión 1.0.0 &nbsp;·&nbsp; Spring Boot 3.4.0 &nbsp;·&nbsp; Junio 2026</div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════ ÍNDICE -->
+<div class="toc">
+  <h2>Contenido</h2>
+  <ol>
+    <li>Información general <span>– URL base, autenticación JWT, roles</span></li>
+    <li>Configuración de SoapUI <span>– proyecto REST, variable de token</span></li>
+    <li>Módulo: Autenticación <span>– login, refresh, logout</span></li>
+    <li>Módulo: Catálogos <span>– roles, parentescos, estados, métodos de pago…</span></li>
+    <li>Módulo: Planes funerarios <span>– listar, obtener, crear, actualizar, desactivar</span></li>
+    <li>Módulo: Personas <span>– CRUD completo</span></li>
+    <li>Módulo: Contratos <span>– crear, listar, cambiar estado, cancelar</span></li>
+    <li>Módulo: Cobros programados <span>– consulta por contrato</span></li>
+    <li>Módulo: Pagos <span>– registrar y consultar</span></li>
+    <li>Módulo: Notificaciones <span>– listar, marcar leídas</span></li>
+    <li>Flujo de prueba recomendado <span>– secuencia paso a paso</span></li>
+    <li>Inserción del usuario administrador <span>– SQL y pasos en pgAdmin</span></li>
+  </ol>
+</div>
+
+<!-- ═══════════════════════════════════════════════════ 1. INFORMACIÓN GENERAL -->
+<div class="section">
+  <div class="section-title">1. Información general</div>
+
+  <table>
+    <tr><th>Parámetro</th><th>Valor</th></tr>
+    <tr><td>URL base</td><td><code>http://localhost:8080/api</code></td></tr>
+    <tr><td>Puerto</td><td>8080</td></tr>
+    <tr><td>Context path</td><td>/api</td></tr>
+    <tr><td>Protocolo</td><td>HTTP (REST/JSON)</td></tr>
+    <tr><td>Autenticación</td><td>JWT Bearer Token (JJWT 0.12.6)</td></tr>
+    <tr><td>Formato de datos</td><td>application/json (UTF-8)</td></tr>
+    <tr><td>Framework</td><td>Spring Boot 3.4.0 · Java 21 · PostgreSQL 18</td></tr>
+  </table>
+
+  <div class="note" style="margin-top:16px">
+    <strong>Roles del sistema:</strong><br/>
+    &bull; <strong>ADMIN</strong> – acceso total.<br/>
+    &bull; <strong>AGENTE</strong> – gestiona contratos, cobros y pagos.<br/>
+    &bull; <strong>CLIENTE</strong> – portal de autoservicio (lectura propia).
+  </div>
+
+  <div class="note">
+    <strong>Manejo de errores:</strong> Todos los errores devuelven un objeto JSON con los campos
+    <code>timestamp</code>, <code>status</code>, <code>error</code> y <code>message</code>.
+    Errores de validación incluyen el campo <code>errors</code> (lista de campos inválidos).
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════ 2. SOAPUI -->
+<div class="section" style="page-break-before:always">
+  <div class="section-title">2. Configuración de SoapUI</div>
+
+  <div class="step">
+    <div class="step-num">1</div>
+    <div class="step-content">
+      <strong>Crear proyecto REST</strong><br/>
+      File → New REST Project → URI: <code>http://localhost:8080/api</code>
+    </div>
+  </div>
+  <div class="step">
+    <div class="step-num">2</div>
+    <div class="step-content">
+      <strong>Crear propiedad de proyecto para el token</strong><br/>
+      Clic derecho en el proyecto → Custom Properties → agregar propiedad:<br/>
+      Nombre: <code>access_token</code> &nbsp; Valor: (vacío, se llenará al hacer login)
+    </div>
+  </div>
+  <div class="step">
+    <div class="step-num">3</div>
+    <div class="step-content">
+      <strong>Agregar el token a cada request</strong><br/>
+      En cada request REST, pestaña <em>Headers</em> → agregar:<br/>
+      <code>Authorization</code> = <code>Bearer ${#Project#access_token}</code>
+    </div>
+  </div>
+  <div class="step">
+    <div class="step-num">4</div>
+    <div class="step-content">
+      <strong>Capturar el token automáticamente (TestCase)</strong><br/>
+      Después del step de Login agrega un <em>Groovy Script</em>:<br/>
+      <div class="json-block">def response = context.expand('${Login#Response}')
+def json    = new groovy.json.JsonSlurper().parseText(response)
+testRunner.testCase.testSuite.project.setPropertyValue(
+    "access_token", json.accessToken
+)</div>
+    </div>
+  </div>
+  <div class="step">
+    <div class="step-num">5</div>
+    <div class="step-content">
+      <strong>Content-Type</strong><br/>
+      Todos los requests con body deben incluir en <em>Headers</em>:<br/>
+      <code>Content-Type: application/json</code>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════ 3. AUTENTICACIÓN -->
+<div class="section" style="page-break-before:always">
+  <div class="section-title">3. Módulo: Autenticación</div>
+
+  <!-- LOGIN -->
+  <div class="endpoint">
+    <div class="endpoint-header">
+      <span class="method POST">POST</span>
+      <span class="endpoint-path">/auth/login</span>
+      <span class="endpoint-desc">Obtener access token y refresh token</span>
+    </div>
+    <div class="endpoint-body">
+      <p><span class="tag tag-public">Público – no requiere token</span></p>
+      <p style="margin-top:8px"><strong>Body (JSON):</strong></p>
+      <div class="json-block">{
+  <span class="json-key">"username"</span>: <span class="json-str">"admin"</span>,
+  <span class="json-key">"password"</span>: <span class="json-str">"Admin123!"</span>
+}</div>
+      <p style="margin-top:10px"><strong>Respuesta 200:</strong></p>
+      <div class="json-block">{
+  <span class="json-key">"accessToken"</span>:  <span class="json-str">"eyJhbGciOiJIUzI1NiJ9..."</span>,
+  <span class="json-key">"refreshToken"</span>: <span class="json-str">"eyJhbGciOiJIUzI1NiJ9..."</span>,
+  <span class="json-key">"username"</span>:     <span class="json-str">"admin"</span>,
+  <span class="json-key">"rol"</span>:          <span class="json-str">"ADMIN"</span>
+}</div>
+    </div>
+  </div>
+
+  <!-- REFRESH -->
+  <div class="endpoint">
+    <div class="endpoint-header">
+      <span class="method POST">POST</span>
+      <span class="endpoint-path">/auth/refresh</span>
+      <span class="endpoint-desc">Renovar el access token usando el refresh token</span>
+    </div>
+    <div class="endpoint-body">
+      <p><span class="tag tag-public">Público</span></p>
+      <div class="json-block">{
+  <span class="json-key">"refreshToken"</span>: <span class="json-str">"eyJhbGciOiJIUzI1NiJ9..."</span>
+}</div>
+    </div>
+  </div>
+
+  <!-- LOGOUT -->
+  <div class="endpoint">
+    <div class="endpoint-header">
+      <span class="method POST">POST</span>
+      <span class="endpoint-path">/auth/logout</span>
+      <span class="endpoint-desc">Invalidar el refresh token</span>
+    </div>
+    <div class="endpoint-body">
+      <p><span class="tag tag-auth">Requiere token</span></p>
+      <div class="json-block">{
+  <span class="json-key">"refreshToken"</span>: <span class="json-str">"eyJhbGciOiJIUzI1NiJ9..."</span>
+}</div>
+      <p style="margin-top:6px">Respuesta: <strong>204 No Content</strong></p>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════ 4. CATÁLOGOS -->
+<div class="section" style="page-break-before:always">
+  <div class="section-title">4. Módulo: Catálogos</div>
+  <div class="note"><strong>Todos los endpoints de catálogo son GET sin body.</strong> No requieren rol específico pero sí token de acceso. Úsalos para obtener los IDs necesarios en otras operaciones.</div>
+
+  <table>
+    <tr><th>Método</th><th>URL</th><th>Descripción</th></tr>
+    <tr><td><span class="method GET">GET</span></td><td><code>/catalogos/roles</code></td><td>Lista todos los roles</td></tr>
+    <tr><td><span class="method GET">GET</span></td><td><code>/catalogos/parentescos</code></td><td>Parentescos activos</td></tr>
+    <tr><td><span class="method GET">GET</span></td><td><code>/catalogos/estados-contrato</code></td><td>Estados de contrato activos</td></tr>
+    <tr><td><span class="method GET">GET</span></td><td><code>/catalogos/estados-pago</code></td><td>Estados de pago activos</td></tr>
+    <tr><td><span class="method GET">GET</span></td><td><code>/catalogos/metodos-pago</code></td><td>Métodos de pago activos</td></tr>
+    <tr><td><span class="method GET">GET</span></td><td><code>/catalogos/tipos-documento</code></td><td>Tipos de documento activos</td></tr>
+    <tr><td><span class="method GET">GET</span></td><td><code>/catalogos/categorias-articulo</code></td><td>Categorías de artículo activos</td></tr>
+    <tr><td><span class="method GET">GET</span></td><td><code>/catalogos/sucursales</code></td><td>Sucursales activas</td></tr>
+  </table>
+
+  <p style="margin-top:14px"><strong>Ejemplo de respuesta <code>/catalogos/metodos-pago</code>:</strong></p>
+  <div class="json-block">[
+  { <span class="json-key">"id"</span>: <span class="json-num">1</span>, <span class="json-key">"clave"</span>: <span class="json-str">"MERCADO_PAGO"</span>,  <span class="json-key">"nombre"</span>: <span class="json-str">"Mercado Pago"</span> },
+  { <span class="json-key">"id"</span>: <span class="json-num">2</span>, <span class="json-key">"clave"</span>: <span class="json-str">"TRANSFERENCIA"</span>, <span class="json-key">"nombre"</span>: <span class="json-str">"Transferencia bancaria"</span> },
+  { <span class="json-key">"id"</span>: <span class="json-num">3</span>, <span class="json-key">"clave"</span>: <span class="json-str">"OXXO"</span>,          <span class="json-key">"nombre"</span>: <span class="json-str">"Ficha OXXO"</span> },
+  { <span class="json-key">"id"</span>: <span class="json-num">4</span>, <span class="json-key">"clave"</span>: <span class="json-str">"EFECTIVO"</span>,      <span class="json-key">"nombre"</span>: <span class="json-str">"Efectivo en sucursal"</span> }
+]</div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════ 5. PLANES -->
+<div class="section" style="page-break-before:always">
+  <div class="section-title">5. Módulo: Planes Funerarios</div>
+
+  <div class="endpoint">
+    <div class="endpoint-header"><span class="method GET">GET</span><span class="endpoint-path">/planes</span><span class="endpoint-desc">Lista todos los planes activos</span></div>
+    <div class="endpoint-body"><p><span class="tag tag-public">Público</span> &nbsp; Sin body · Sin parámetros</p></div>
+  </div>
+
+  <div class="endpoint">
+    <div class="endpoint-header"><span class="method GET">GET</span><span class="endpoint-path">/planes/{id}</span><span class="endpoint-desc">Obtener plan por ID</span></div>
+    <div class="endpoint-body"><p><span class="tag tag-public">Público</span> &nbsp; Parámetro de ruta: <code>id</code> (Long)</p></div>
+  </div>
+
+  <div class="endpoint">
+    <div class="endpoint-header"><span class="method POST">POST</span><span class="endpoint-path">/planes</span><span class="endpoint-desc">Crear nuevo plan</span></div>
+    <div class="endpoint-body">
+      <p><span class="tag tag-admin">ADMIN</span></p>
+      <div class="json-block">{
+  <span class="json-key">"nombre"</span>:               <span class="json-str">"Plan Especial"</span>,
+  <span class="json-key">"descripcion"</span>:          <span class="json-str">"Descripción del plan"</span>,
+  <span class="json-key">"precioTotal"</span>:          <span class="json-num">25000.00</span>,
+  <span class="json-key">"mensualidad"</span>:          <span class="json-num">350.00</span>,
+  <span class="json-key">"duracionMeses"</span>:        <span class="json-num">72</span>,
+  <span class="json-key">"numeroBeneficiarios"</span>: <span class="json-num">2</span>
+}</div>
+    </div>
+  </div>
+
+  <div class="endpoint">
+    <div class="endpoint-header"><span class="method PUT">PUT</span><span class="endpoint-path">/planes/{id}</span><span class="endpoint-desc">Actualizar plan</span></div>
+    <div class="endpoint-body"><p><span class="tag tag-admin">ADMIN</span> &nbsp; Mismo body que POST</p></div>
+  </div>
+
+  <div class="endpoint">
+    <div class="endpoint-header"><span class="method DELETE">DELETE</span><span class="endpoint-path">/planes/{id}</span><span class="endpoint-desc">Desactivar plan (soft delete)</span></div>
+    <div class="endpoint-body"><p><span class="tag tag-admin">ADMIN</span> &nbsp; Sin body · Respuesta: <strong>204 No Content</strong></p></div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════ 6. PERSONAS -->
+<div class="section" style="page-break-before:always">
+  <div class="section-title">6. Módulo: Personas</div>
+
+  <div class="endpoint">
+    <div class="endpoint-header"><span class="method GET">GET</span><span class="endpoint-path">/personas</span><span class="endpoint-desc">Listar personas con paginación y búsqueda</span></div>
+    <div class="endpoint-body">
+      <p><span class="tag tag-admin">ADMIN</span> <span class="tag tag-agente">AGENTE</span></p>
+      <table style="margin-top:10px">
+        <tr><th>Parámetro Query</th><th>Tipo</th><th>Requerido</th><th>Descripción</th></tr>
+        <tr><td>q</td><td>String</td><td>No</td><td>Búsqueda por nombre, apellido o correo</td></tr>
+        <tr><td>page</td><td>Integer</td><td>No</td><td>Número de página (default: 0)</td></tr>
+        <tr><td>size</td><td>Integer</td><td>No</td><td>Registros por página (default: 20)</td></tr>
+        <tr><td>sort</td><td>String</td><td>No</td><td>Campo de ordenamiento (default: apPaterno)</td></tr>
+      </table>
+      <p style="margin-top:6px">Ejemplo: <code>GET /personas?q=García&amp;page=0&amp;size=10</code></p>
+    </div>
+  </div>
+
+  <div class="endpoint">
+    <div class="endpoint-header"><span class="method GET">GET</span><span class="endpoint-path">/personas/{id}</span><span class="endpoint-desc">Obtener persona por ID</span></div>
+    <div class="endpoint-body"><p><span class="tag tag-auth">Autenticado</span></p></div>
+  </div>
+
+  <div class="endpoint">
+    <div class="endpoint-header"><span class="method POST">POST</span><span class="endpoint-path">/personas</span><span class="endpoint-desc">Crear nueva persona</span></div>
+    <div class="endpoint-body">
+      <p><span class="tag tag-admin">ADMIN</span> <span class="tag tag-agente">AGENTE</span></p>
+      <div class="json-block">{
+  <span class="json-key">"nombre"</span>:          <span class="json-str">"Juan"</span>,           <span style="color:#666">// Requerido</span>
+  <span class="json-key">"apPaterno"</span>:       <span class="json-str">"García"</span>,         <span style="color:#666">// Requerido</span>
+  <span class="json-key">"apMaterno"</span>:       <span class="json-str">"López"</span>,          <span style="color:#666">// Opcional</span>
+  <span class="json-key">"fechaNacimiento"</span>: <span class="json-str">"1985-03-15"</span>,     <span style="color:#666">// Opcional – formato YYYY-MM-DD</span>
+  <span class="json-key">"sexo"</span>:            <span class="json-str">"M"</span>,             <span style="color:#666">// Opcional – M, F u O</span>
+  <span class="json-key">"curp"</span>:            <span class="json-str">"GALJ850315HDFRZN04"</span>, <span style="color:#666">// Opcional – 18 chars</span>
+  <span class="json-key">"rfc"</span>:             <span class="json-str">"GALJ850315AB1"</span>,  <span style="color:#666">// Opcional</span>
+  <span class="json-key">"telefono"</span>:        <span class="json-str">"5512345678"</span>,     <span style="color:#666">// Opcional</span>
+  <span class="json-key">"correo"</span>:          <span class="json-str">"juan@example.com"</span>, <span style="color:#666">// Opcional</span>
+  <span class="json-key">"calle"</span>:           <span class="json-str">"Av. Principal"</span>,  <span style="color:#666">// Opcional</span>
+  <span class="json-key">"numeroExt"</span>:       <span class="json-str">"10"</span>,             <span style="color:#666">// Opcional</span>
+  <span class="json-key">"colonia"</span>:         <span class="json-str">"Centro"</span>,         <span style="color:#666">// Opcional</span>
+  <span class="json-key">"municipio"</span>:       <span class="json-str">"Iztapalapa"</span>,     <span style="color:#666">// Opcional</span>
+  <span class="json-key">"estado"</span>:          <span class="json-str">"Ciudad de México"</span>,<span style="color:#666">// Opcional</span>
+  <span class="json-key">"codigoPostal"</span>:    <span class="json-str">"09510"</span>,          <span style="color:#666">// Opcional – 5 dígitos</span>
+  <span class="json-key">"pais"</span>:            <span class="json-str">"México"</span>          <span style="color:#666">// Default: México</span>
+}</div>
+    </div>
+  </div>
+
+  <div class="endpoint">
+    <div class="endpoint-header"><span class="method PUT">PUT</span><span class="endpoint-path">/personas/{id}</span><span class="endpoint-desc">Actualizar persona</span></div>
+    <div class="endpoint-body"><p><span class="tag tag-admin">ADMIN</span> <span class="tag tag-agente">AGENTE</span> &nbsp; Mismo body que POST</p></div>
+  </div>
+
+  <div class="endpoint">
+    <div class="endpoint-header"><span class="method DELETE">DELETE</span><span class="endpoint-path">/personas/{id}</span><span class="endpoint-desc">Soft delete de persona</span></div>
+    <div class="endpoint-body"><p><span class="tag tag-admin">ADMIN</span> &nbsp; Respuesta: <strong>204 No Content</strong></p></div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════ 7. CONTRATOS -->
+<div class="section" style="page-break-before:always">
+  <div class="section-title">7. Módulo: Contratos</div>
+
+  <div class="endpoint">
+    <div class="endpoint-header"><span class="method GET">GET</span><span class="endpoint-path">/contratos</span><span class="endpoint-desc">Listar contratos con paginación</span></div>
+    <div class="endpoint-body">
+      <p><span class="tag tag-admin">ADMIN</span> <span class="tag tag-agente">AGENTE</span></p>
+      <table style="margin-top:10px">
+        <tr><th>Parámetro Query</th><th>Descripción</th></tr>
+        <tr><td>estado</td><td>Filtrar por clave: VIGENTE, SUSPENDIDO, CANCELADO, SINIESTRADO, VENCIDO</td></tr>
+        <tr><td>page / size / sort</td><td>Paginación (default sort: createdAt)</td></tr>
+      </table>
+    </div>
+  </div>
+
+  <div class="endpoint">
+    <div class="endpoint-header"><span class="method GET">GET</span><span class="endpoint-path">/contratos/{id}</span><span class="endpoint-desc">Obtener contrato por ID</span></div>
+    <div class="endpoint-body"><p><span class="tag tag-auth">Autenticado</span></p></div>
+  </div>
+
+  <div class="endpoint">
+    <div class="endpoint-header"><span class="method GET">GET</span><span class="endpoint-path">/contratos/persona/{personaId}</span><span class="endpoint-desc">Contratos de una persona</span></div>
+    <div class="endpoint-body"><p><span class="tag tag-auth">Autenticado</span></p></div>
+  </div>
+
+  <div class="endpoint">
+    <div class="endpoint-header"><span class="method POST">POST</span><span class="endpoint-path">/contratos</span><span class="endpoint-desc">Crear contrato (genera cobros automáticamente)</span></div>
+    <div class="endpoint-body">
+      <p><span class="tag tag-admin">ADMIN</span> <span class="tag tag-agente">AGENTE</span></p>
+      <div class="json-block">{
+  <span class="json-key">"personaId"</span>:          <span class="json-num">1</span>,           <span style="color:#666">// Requerido – ID del titular</span>
+  <span class="json-key">"planId"</span>:              <span class="json-num">1</span>,           <span style="color:#666">// Requerido – ID del plan</span>
+  <span class="json-key">"sucursalId"</span>:          <span class="json-num">1</span>,           <span style="color:#666">// Opcional</span>
+  <span class="json-key">"empleadoVendedorId"</span>:  <span class="json-num">null</span>,        <span style="color:#666">// Opcional</span>
+  <span class="json-key">"fechaInicio"</span>:         <span class="json-str">"2026-06-01"</span>,<span style="color:#666">// Requerido</span>
+  <span class="json-key">"precioContratado"</span>:    <span class="json-num">18000.00</span>,   <span style="color:#666">// Requerido</span>
+  <span class="json-key">"mensualidadPactada"</span>:  <span class="json-num">300.00</span>,     <span style="color:#666">// Requerido</span>
+  <span class="json-key">"notas"</span>:               <span class="json-str">"Notas opcionales"</span>
+}</div>
+    </div>
+  </div>
+
+  <div class="endpoint">
+    <div class="endpoint-header"><span class="method PATCH">PATCH</span><span class="endpoint-path">/contratos/{id}/estado?clave=CANCELADO</span><span class="endpoint-desc">Cambiar estado</span></div>
+    <div class="endpoint-body">
+      <p><span class="tag tag-admin">ADMIN</span> <span class="tag tag-agente">AGENTE</span> &nbsp; Sin body · Parámetro query: <code>clave</code></p>
+      <p style="margin-top:4px">Valores válidos: <code>VIGENTE</code> | <code>SUSPENDIDO</code> | <code>CANCELADO</code> | <code>SINIESTRADO</code> | <code>VENCIDO</code></p>
+    </div>
+  </div>
+
+  <div class="endpoint">
+    <div class="endpoint-header"><span class="method DELETE">DELETE</span><span class="endpoint-path">/contratos/{id}</span><span class="endpoint-desc">Cancelar contrato</span></div>
+    <div class="endpoint-body"><p><span class="tag tag-admin">ADMIN</span> &nbsp; Respuesta: <strong>204 No Content</strong></p></div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════ 8. COBROS -->
+<div class="section" style="page-break-before:always">
+  <div class="section-title">8. Módulo: Cobros Programados (solo lectura)</div>
+  <div class="note">Los cobros se generan automáticamente al crear un contrato. No existe endpoint de creación manual.</div>
+
+  <div class="endpoint">
+    <div class="endpoint-header"><span class="method GET">GET</span><span class="endpoint-path">/cobros/contrato/{contratoId}</span><span class="endpoint-desc">Todos los cobros de un contrato</span></div>
+    <div class="endpoint-body"><p><span class="tag tag-auth">Autenticado</span></p></div>
+  </div>
+
+  <div class="endpoint">
+    <div class="endpoint-header"><span class="method GET">GET</span><span class="endpoint-path">/cobros/contrato/{contratoId}/pendientes</span><span class="endpoint-desc">Solo cobros pendientes</span></div>
+    <div class="endpoint-body"><p><span class="tag tag-auth">Autenticado</span></p></div>
+  </div>
+
+  <div class="endpoint">
+    <div class="endpoint-header"><span class="method GET">GET</span><span class="endpoint-path">/cobros/{id}</span><span class="endpoint-desc">Obtener cobro por ID</span></div>
+    <div class="endpoint-body"><p><span class="tag tag-auth">Autenticado</span></p></div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════ 9. PAGOS -->
+<div class="section">
+  <div class="section-title">9. Módulo: Pagos</div>
+
+  <div class="endpoint">
+    <div class="endpoint-header"><span class="method GET">GET</span><span class="endpoint-path">/pagos</span><span class="endpoint-desc">Listar pagos con paginación</span></div>
+    <div class="endpoint-body">
+      <p><span class="tag tag-admin">ADMIN</span> <span class="tag tag-agente">AGENTE</span></p>
+      <table style="margin-top:8px">
+        <tr><th>Parámetro Query</th><th>Descripción</th></tr>
+        <tr><td>contratoId</td><td>Filtrar por contrato (opcional)</td></tr>
+        <tr><td>page / size</td><td>Paginación (default: 20)</td></tr>
+      </table>
+    </div>
+  </div>
+
+  <div class="endpoint">
+    <div class="endpoint-header"><span class="method GET">GET</span><span class="endpoint-path">/pagos/{id}</span><span class="endpoint-desc">Obtener pago por ID</span></div>
+    <div class="endpoint-body"><p><span class="tag tag-auth">Autenticado</span></p></div>
+  </div>
+
+  <div class="endpoint">
+    <div class="endpoint-header"><span class="method GET">GET</span><span class="endpoint-path">/pagos/contrato/{contratoId}</span><span class="endpoint-desc">Todos los pagos de un contrato</span></div>
+    <div class="endpoint-body"><p><span class="tag tag-auth">Autenticado</span></p></div>
+  </div>
+
+  <div class="endpoint">
+    <div class="endpoint-header"><span class="method POST">POST</span><span class="endpoint-path">/pagos</span><span class="endpoint-desc">Registrar un pago</span></div>
+    <div class="endpoint-body">
+      <p><span class="tag tag-admin">ADMIN</span> <span class="tag tag-agente">AGENTE</span></p>
+      <div class="json-block">{
+  <span class="json-key">"contratoId"</span>:      <span class="json-num">1</span>,         <span style="color:#666">// Requerido</span>
+  <span class="json-key">"cobroId"</span>:         <span class="json-num">1</span>,         <span style="color:#666">// Opcional – ID del cobro que se está pagando</span>
+  <span class="json-key">"metodoId"</span>:        <span class="json-num">4</span>,         <span style="color:#666">// Requerido – ID del método de pago</span>
+  <span class="json-key">"montoPagado"</span>:     <span class="json-num">300.00</span>,   <span style="color:#666">// Requerido</span>
+  <span class="json-key">"fechaPago"</span>:       <span class="json-str">"2026-06-02T12:00:00-06:00"</span>, <span style="color:#666">// Opcional</span>
+  <span class="json-key">"referenciaExterna"</span>: <span class="json-str">"TRX-001"</span>, <span style="color:#666">// Opcional – máx 200 chars</span>
+  <span class="json-key">"notas"</span>:           <span class="json-str">"Pago mensualidad junio"</span>  <span style="color:#666">// Opcional</span>
+}</div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════ 10. NOTIFICACIONES -->
+<div class="section" style="page-break-before:always">
+  <div class="section-title">10. Módulo: Notificaciones</div>
+  <div class="note">Las notificaciones son propias del usuario autenticado. El sistema las genera internamente.</div>
+
+  <div class="endpoint">
+    <div class="endpoint-header"><span class="method GET">GET</span><span class="endpoint-path">/notificaciones</span><span class="endpoint-desc">Listar notificaciones del usuario autenticado</span></div>
+    <div class="endpoint-body">
+      <p><span class="tag tag-auth">Autenticado</span></p>
+      <p style="margin-top:6px">Query params: <code>page</code>, <code>size</code> (default: 20, orden: createdAt DESC)</p>
+    </div>
+  </div>
+
+  <div class="endpoint">
+    <div class="endpoint-header"><span class="method GET">GET</span><span class="endpoint-path">/notificaciones/no-leidas</span><span class="endpoint-desc">Contar notificaciones no leídas</span></div>
+    <div class="endpoint-body">
+      <p><span class="tag tag-auth">Autenticado</span> &nbsp; Respuesta: <code>{ "count": 5 }</code></p>
+    </div>
+  </div>
+
+  <div class="endpoint">
+    <div class="endpoint-header"><span class="method PATCH">PATCH</span><span class="endpoint-path">/notificaciones/marcar-leidas</span><span class="endpoint-desc">Marcar todas como leídas</span></div>
+    <div class="endpoint-body">
+      <p><span class="tag tag-auth">Autenticado</span> &nbsp; Sin body · Respuesta: <strong>204 No Content</strong></p>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════ 11. FLUJO -->
+<div class="section" style="page-break-before:always">
+  <div class="section-title">11. Flujo de prueba recomendado en SoapUI</div>
+
+  <div class="step"><div class="step-num">1</div><div class="step-content"><strong>POST /auth/login</strong> – Obtén el token. Guárdalo en la propiedad del proyecto con el script Groovy.</div></div>
+  <div class="step"><div class="step-num">2</div><div class="step-content"><strong>GET /catalogos/metodos-pago</strong> – Anota el <code>id</code> del método "EFECTIVO" (o el que prefieras).</div></div>
+  <div class="step"><div class="step-num">3</div><div class="step-content"><strong>GET /planes</strong> – Anota el <code>id</code> del plan deseado (ej. Plan Básico = 1).</div></div>
+  <div class="step"><div class="step-num">4</div><div class="step-content"><strong>GET /catalogos/sucursales</strong> – Anota el <code>id</code> de la sucursal.</div></div>
+  <div class="step"><div class="step-num">5</div><div class="step-content"><strong>POST /personas</strong> – Crea el titular del contrato. Anota su <code>id</code> de la respuesta.</div></div>
+  <div class="step"><div class="step-num">6</div><div class="step-content"><strong>POST /contratos</strong> – Usa los IDs anteriores. El sistema generará los cobros mensuales automáticamente.</div></div>
+  <div class="step"><div class="step-num">7</div><div class="step-content"><strong>GET /cobros/contrato/{id}</strong> – Consulta los cobros generados. Anota el <code>id</code> del primer cobro.</div></div>
+  <div class="step"><div class="step-num">8</div><div class="step-content"><strong>POST /pagos</strong> – Registra el pago de la primera mensualidad usando el <code>cobroId</code> y <code>metodoId</code>.</div></div>
+  <div class="step"><div class="step-num">9</div><div class="step-content"><strong>GET /pagos/contrato/{id}</strong> – Verifica que el pago quedó registrado.</div></div>
+  <div class="step"><div class="step-num">10</div><div class="step-content"><strong>GET /notificaciones</strong> – Consulta si se generó alguna notificación.</div></div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════ 12. INSERT USUARIO ADMIN -->
+<div class="section" style="page-break-before:always">
+  <div class="section-title">12. Inserción del usuario administrador</div>
+
+  <div class="warn">
+    ⚠ La contraseña en la base de datos se almacena como hash <strong>BCrypt</strong>.
+    Nunca se guarda en texto plano. Debes generar el hash de "Admin123!" antes de insertar.
+  </div>
+
+  <p style="margin: 14px 0 8px"><strong>Paso 1 — Generar el hash BCrypt de "Admin123!"</strong></p>
+  <p>Ve a <strong>https://bcrypt.online</strong>, escribe <code>Admin123!</code>, rounds = <strong>10</strong>, haz clic en "Hash Password" y copia el hash generado (empieza con <code>$2a$10$</code>).</p>
+
+  <p style="margin: 14px 0 8px"><strong>Paso 2 — Ejecutar en pgAdmin (o psql) sobre la base de datos <code>postgres</code>, esquema <code>funeraria</code></strong></p>
+
+  <div class="json-block">-- 1. Establece el esquema
+SET search_path TO funeraria, public;
+
+-- 2. Inserta la persona para el administrador
+INSERT INTO personas (nombre, ap_paterno, correo, pais)
+VALUES ('Administrador', 'Sistema', 'admin@shsm.com', 'México')
+RETURNING id;
+-- ► Anota el id devuelto (lo necesitas en el paso siguiente, ej: 1)
+
+-- 3. Obtén el id del rol ADMIN
+SELECT id FROM roles WHERE clave = 'ADMIN';
+-- ► Anota ese id (normalmente 1)
+
+-- 4. Inserta el usuario admin
+--    Reemplaza:
+--      &lt;PERSONA_ID&gt;   con el id obtenido en el paso 2
+--      &lt;ROL_ID&gt;       con el id obtenido en el paso 3
+--      &lt;BCRYPT_HASH&gt;  con el hash generado en el Paso 1
+
+INSERT INTO usuarios
+    (persona_id, rol_id, username, password_hash, requiere_cambio_pw, intentos_fallidos)
+VALUES
+    (&lt;PERSONA_ID&gt;,
+     &lt;ROL_ID&gt;,
+     'admin',
+     '&lt;BCRYPT_HASH&gt;',
+     false,
+     0)
+ON CONFLICT (username) DO NOTHING;</div>
+
+  <p style="margin: 14px 0 8px"><strong>Ejemplo concreto (suponiendo persona_id = 1, rol_id = 1)</strong></p>
+  <div class="json-block">SET search_path TO funeraria, public;
+
+INSERT INTO personas (nombre, ap_paterno, correo, pais)
+VALUES ('Administrador', 'Sistema', 'admin@shsm.com', 'México');
+
+INSERT INTO usuarios
+    (persona_id, rol_id, username, password_hash, requiere_cambio_pw, intentos_fallidos)
+VALUES
+    (
+      (SELECT id FROM personas WHERE correo = 'admin@shsm.com' LIMIT 1),
+      (SELECT id FROM roles    WHERE clave  = 'ADMIN'          LIMIT 1),
+      'admin',
+      '$2a$10$REEMPLAZA_CON_TU_HASH_GENERADO_EN_BCRYPT_ONLINE',
+      false,
+      0
+    )
+ON CONFLICT (username) DO NOTHING;</div>
+
+  <p style="margin: 14px 0 8px"><strong>Paso 3 — Verificar la inserción</strong></p>
+  <div class="json-block">SELECT u.id, u.username, r.clave AS rol, p.nombre, p.ap_paterno
+FROM   usuarios u
+JOIN   roles    r ON r.id = u.rol_id
+JOIN   personas p ON p.id = u.persona_id
+WHERE  u.username = 'admin';</div>
+
+  <p style="margin: 14px 0 8px"><strong>Paso 4 — Probar en SoapUI</strong></p>
+  <div class="json-block">POST http://localhost:8080/api/auth/login
+Content-Type: application/json
+
+{
+  "username": "admin",
+  "password": "Admin123!"
+}</div>
+
+  <div class="note" style="margin-top:16px">
+    <strong>Si recibes 401 Unauthorized</strong>, el hash no corresponde a "Admin123!".
+    Vuelve a generarlo en bcrypt.online y actualiza con:<br/><br/>
+    <code>UPDATE funeraria.usuarios SET password_hash = '$2a$10$NUEVO_HASH' WHERE username = 'admin';</code>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════ PIE -->
+<div style="background:#1e3a5f; color:#fff; text-align:center; padding:20px; font-size:11px; margin-top:40px;">
+  Sociedad Humanista Santa Martha S.A. de C.V. &nbsp;·&nbsp; API REST v1.0.0
+  &nbsp;·&nbsp; Spring Boot 3.4.0 &nbsp;·&nbsp; Documento generado: Junio 2026
+</div>
+
+</body>
+</html>

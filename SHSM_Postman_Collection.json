@@ -1,0 +1,1375 @@
+{
+  "info": {
+    "_postman_id": "shsm-api-v1-collection",
+    "name": "SHSM API – Sociedad Humanista Santa Martha",
+    "description": "API REST v1.0.0 · Spring Boot 3.4.0 · Java 21 · PostgreSQL\n\nBase URL: http://localhost:8080/api\n\n**Instrucciones:**\n1. Ejecuta **POST /auth/login**. El script de test guarda el token automáticamente en la variable de colección `access_token`.\n2. Todos los demás endpoints protegidos usan `{{access_token}}` en el header Authorization.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:8080/api",
+      "type": "string"
+    },
+    {
+      "key": "access_token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "refresh_token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "persona_id",
+      "value": "1",
+      "type": "string"
+    },
+    {
+      "key": "plan_id",
+      "value": "1",
+      "type": "string"
+    },
+    {
+      "key": "sucursal_id",
+      "value": "1",
+      "type": "string"
+    },
+    {
+      "key": "contrato_id",
+      "value": "1",
+      "type": "string"
+    },
+    {
+      "key": "cobro_id",
+      "value": "1",
+      "type": "string"
+    },
+    {
+      "key": "pago_id",
+      "value": "1",
+      "type": "string"
+    },
+    {
+      "key": "metodo_id",
+      "value": "4",
+      "type": "string"
+    }
+  ],
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{access_token}}",
+        "type": "string"
+      }
+    ]
+  },
+  "item": [
+    {
+      "name": "01 – Autenticación",
+      "description": "Login, renovación de token y logout.",
+      "item": [
+        {
+          "name": "Login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const json = pm.response.json();",
+                  "    pm.collectionVariables.set('access_token',  json.accessToken);",
+                  "    pm.collectionVariables.set('refresh_token', json.refreshToken);",
+                  "    pm.test('Login exitoso – token capturado', () => {",
+                  "        pm.expect(json.accessToken).to.be.a('string').and.not.empty;",
+                  "    });",
+                  "} else {",
+                  "    pm.test('Login fallido – revisa credenciales', () => {",
+                  "        pm.response.to.have.status(200);",
+                  "    });",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"admin\",\n  \"password\": \"Admin123!\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/auth/login",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "auth",
+                "login"
+              ]
+            },
+            "description": "**Público – no requiere token.**\n\nObtiene `accessToken` y `refreshToken`. El script de test los guarda automáticamente en las variables de colección."
+          }
+        },
+        {
+          "name": "Refresh Token",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const json = pm.response.json();",
+                  "    pm.collectionVariables.set('access_token', json.accessToken);",
+                  "    pm.test('Token renovado correctamente', () => {",
+                  "        pm.expect(json.accessToken).to.be.a('string').and.not.empty;",
+                  "    });",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"refreshToken\": \"{{refresh_token}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/auth/refresh",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "auth",
+                "refresh"
+              ]
+            },
+            "description": "Renueva el `accessToken` usando el `refreshToken`. **Público.**"
+          }
+        },
+        {
+          "name": "Logout",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"refreshToken\": \"{{refresh_token}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/auth/logout",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "auth",
+                "logout"
+              ]
+            },
+            "description": "Invalida el `refreshToken`. **Requiere token.** Respuesta: `204 No Content`."
+          }
+        }
+      ]
+    },
+    {
+      "name": "02 – Catálogos",
+      "description": "Todos los catálogos son GET sin body. Requieren token. Úsalos para obtener los IDs necesarios en otras operaciones.",
+      "item": [
+        {
+          "name": "GET Roles",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/catalogos/roles",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "catalogos",
+                "roles"
+              ]
+            }
+          }
+        },
+        {
+          "name": "GET Parentescos",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/catalogos/parentescos",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "catalogos",
+                "parentescos"
+              ]
+            }
+          }
+        },
+        {
+          "name": "GET Estados Contrato",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/catalogos/estados-contrato",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "catalogos",
+                "estados-contrato"
+              ]
+            }
+          }
+        },
+        {
+          "name": "GET Estados Pago",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/catalogos/estados-pago",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "catalogos",
+                "estados-pago"
+              ]
+            }
+          }
+        },
+        {
+          "name": "GET Métodos de Pago",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/catalogos/metodos-pago",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "catalogos",
+                "metodos-pago"
+              ]
+            },
+            "description": "Ejemplo de respuesta:\n```json\n[\n  { \"id\": 1, \"clave\": \"MERCADO_PAGO\",  \"nombre\": \"Mercado Pago\" },\n  { \"id\": 2, \"clave\": \"TRANSFERENCIA\", \"nombre\": \"Transferencia bancaria\" },\n  { \"id\": 3, \"clave\": \"OXXO\",          \"nombre\": \"Ficha OXXO\" },\n  { \"id\": 4, \"clave\": \"EFECTIVO\",      \"nombre\": \"Efectivo en sucursal\" }\n]\n```"
+          }
+        },
+        {
+          "name": "GET Tipos Documento",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/catalogos/tipos-documento",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "catalogos",
+                "tipos-documento"
+              ]
+            }
+          }
+        },
+        {
+          "name": "GET Categorías Artículo",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/catalogos/categorias-articulo",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "catalogos",
+                "categorias-articulo"
+              ]
+            }
+          }
+        },
+        {
+          "name": "GET Sucursales",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/catalogos/sucursales",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "catalogos",
+                "sucursales"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "03 – Planes Funerarios",
+      "description": "CRUD de planes funerarios. GET es público; POST, PUT y DELETE requieren rol ADMIN.",
+      "item": [
+        {
+          "name": "GET Planes (lista)",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/planes",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "planes"
+              ]
+            },
+            "description": "**Público.** Lista todos los planes activos."
+          }
+        },
+        {
+          "name": "GET Plan por ID",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/planes/1",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "planes",
+                "1"
+              ]
+            },
+            "description": "**Público.** Reemplaza `1` por el ID del plan."
+          }
+        },
+        {
+          "name": "POST Crear Plan",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Plan Especial\",\n  \"descripcion\": \"Descripción del plan\",\n  \"precioTotal\": 25000.00,\n  \"mensualidad\": 350.00,\n  \"duracionMeses\": 72,\n  \"numeroBeneficiarios\": 2\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/planes",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "planes"
+              ]
+            },
+            "description": "**Requiere rol ADMIN.**"
+          }
+        },
+        {
+          "name": "PUT Actualizar Plan",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Plan Especial Actualizado\",\n  \"descripcion\": \"Descripción actualizada del plan\",\n  \"precioTotal\": 26000.00,\n  \"mensualidad\": 365.00,\n  \"duracionMeses\": 72,\n  \"numeroBeneficiarios\": 2\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/planes/1",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "planes",
+                "1"
+              ]
+            },
+            "description": "**Requiere rol ADMIN.** Reemplaza `1` por el ID del plan."
+          }
+        },
+        {
+          "name": "DELETE Desactivar Plan",
+          "request": {
+            "method": "DELETE",
+            "url": {
+              "raw": "{{base_url}}/planes/1",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "planes",
+                "1"
+              ]
+            },
+            "description": "**Requiere rol ADMIN.** Soft delete. Respuesta: `204 No Content`."
+          }
+        }
+      ]
+    },
+    {
+      "name": "04 – Personas",
+      "description": "CRUD completo de personas. GET/{id} requiere token; lista, POST y PUT requieren ADMIN o AGENTE; DELETE requiere ADMIN.",
+      "item": [
+        {
+          "name": "GET Personas (lista paginada)",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/personas?q=&page=0&size=20&sort=apPaterno",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "personas"
+              ],
+              "query": [
+                {
+                  "key": "q",
+                  "value": "",
+                  "description": "Búsqueda por nombre, apellido o correo"
+                },
+                {
+                  "key": "page",
+                  "value": "0",
+                  "description": "Número de página (default: 0)"
+                },
+                {
+                  "key": "size",
+                  "value": "20",
+                  "description": "Registros por página (default: 20)"
+                },
+                {
+                  "key": "sort",
+                  "value": "apPaterno",
+                  "description": "Campo de ordenamiento"
+                }
+              ]
+            },
+            "description": "**ADMIN / AGENTE.** Ejemplo: `GET /personas?q=García&page=0&size=10`"
+          }
+        },
+        {
+          "name": "GET Persona por ID",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/personas/1",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "personas",
+                "1"
+              ]
+            },
+            "description": "**Autenticado.** Reemplaza `1` por el ID."
+          }
+        },
+        {
+          "name": "POST Crear Persona",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Juan\",\n  \"apPaterno\": \"García\",\n  \"apMaterno\": \"López\",\n  \"fechaNacimiento\": \"1985-03-15\",\n  \"sexo\": \"M\",\n  \"curp\": \"GALJ850315HDFRZN04\",\n  \"rfc\": \"GALJ850315AB1\",\n  \"telefono\": \"5512345678\",\n  \"correo\": \"juan@example.com\",\n  \"calle\": \"Av. Principal\",\n  \"numeroExt\": \"10\",\n  \"colonia\": \"Centro\",\n  \"municipio\": \"Iztapalapa\",\n  \"estado\": \"Ciudad de México\",\n  \"codigoPostal\": \"09510\",\n  \"pais\": \"México\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/personas",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "personas"
+              ]
+            },
+            "description": "**ADMIN / AGENTE.**\n\nCampos requeridos: `nombre`, `apPaterno`.\nTodos los demás son opcionales."
+          }
+        },
+        {
+          "name": "PUT Actualizar Persona",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Juan Actualizado\",\n  \"apPaterno\": \"García\",\n  \"apMaterno\": \"López\",\n  \"telefono\": \"5512345679\",\n  \"correo\": \"juan.actualizado@example.com\",\n  \"pais\": \"México\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/personas/1",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "personas",
+                "1"
+              ]
+            },
+            "description": "**ADMIN / AGENTE.** Reemplaza `1` por el ID."
+          }
+        },
+        {
+          "name": "DELETE Eliminar Persona",
+          "request": {
+            "method": "DELETE",
+            "url": {
+              "raw": "{{base_url}}/personas/1",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "personas",
+                "1"
+              ]
+            },
+            "description": "**ADMIN.** Soft delete. Respuesta: `204 No Content`."
+          }
+        }
+      ]
+    },
+    {
+      "name": "05 – Contratos",
+      "description": "Gestión de contratos. Al crear un contrato se generan los cobros mensuales automáticamente.",
+      "item": [
+        {
+          "name": "GET Contratos (lista paginada)",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/contratos?page=0&size=20",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "contratos"
+              ],
+              "query": [
+                {
+                  "key": "estado",
+                  "value": "",
+                  "description": "VIGENTE | SUSPENDIDO | CANCELADO | SINIESTRADO | VENCIDO",
+                  "disabled": true
+                },
+                {
+                  "key": "page",
+                  "value": "0"
+                },
+                {
+                  "key": "size",
+                  "value": "20"
+                }
+              ]
+            },
+            "description": "**ADMIN / AGENTE.**\n\nFiltrar por estado (opcional): `VIGENTE`, `SUSPENDIDO`, `CANCELADO`, `SINIESTRADO`, `VENCIDO`."
+          }
+        },
+        {
+          "name": "GET Contrato por ID",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/contratos/1",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "contratos",
+                "1"
+              ]
+            },
+            "description": "**Autenticado.** Reemplaza `1` por el ID del contrato."
+          }
+        },
+        {
+          "name": "GET Contratos por Persona",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/contratos/persona/1",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "contratos",
+                "persona",
+                "1"
+              ]
+            },
+            "description": "**Autenticado.** Reemplaza `1` por el ID de la persona titular."
+          }
+        },
+        {
+          "name": "POST Crear Contrato",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"personaId\": 1,\n  \"planId\": 1,\n  \"sucursalId\": 1,\n  \"empleadoVendedorId\": null,\n  \"fechaInicio\": \"2026-06-01\",\n  \"precioContratado\": 18000.00,\n  \"mensualidadPactada\": 300.00,\n  \"notas\": \"Notas opcionales\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/contratos",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "contratos"
+              ]
+            },
+            "description": "**ADMIN / AGENTE.**\n\nAl crear el contrato, el sistema genera automáticamente los cobros mensuales.\n\nCampos requeridos: `personaId`, `planId`, `fechaInicio`, `precioContratado`, `mensualidadPactada`."
+          }
+        },
+        {
+          "name": "PATCH Cambiar Estado Contrato",
+          "request": {
+            "method": "PATCH",
+            "url": {
+              "raw": "{{base_url}}/contratos/1/estado?clave=VIGENTE",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "contratos",
+                "1",
+                "estado"
+              ],
+              "query": [
+                {
+                  "key": "clave",
+                  "value": "VIGENTE",
+                  "description": "VIGENTE | SUSPENDIDO | CANCELADO | SINIESTRADO | VENCIDO"
+                }
+              ]
+            },
+            "description": "**ADMIN / AGENTE.** Sin body.\n\nValores válidos para `clave`: `VIGENTE`, `SUSPENDIDO`, `CANCELADO`, `SINIESTRADO`, `VENCIDO`."
+          }
+        },
+        {
+          "name": "DELETE Cancelar Contrato",
+          "request": {
+            "method": "DELETE",
+            "url": {
+              "raw": "{{base_url}}/contratos/1",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "contratos",
+                "1"
+              ]
+            },
+            "description": "**ADMIN.** Respuesta: `204 No Content`."
+          }
+        }
+      ]
+    },
+    {
+      "name": "06 – Cobros Programados",
+      "description": "Solo lectura. Los cobros se generan automáticamente al crear un contrato.",
+      "item": [
+        {
+          "name": "GET Cobros por Contrato",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/cobros/contrato/1",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "cobros",
+                "contrato",
+                "1"
+              ]
+            },
+            "description": "**Autenticado.** Todos los cobros de un contrato. Reemplaza `1` por el ID del contrato."
+          }
+        },
+        {
+          "name": "GET Cobros Pendientes por Contrato",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/cobros/contrato/1/pendientes",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "cobros",
+                "contrato",
+                "1",
+                "pendientes"
+              ]
+            },
+            "description": "**Autenticado.** Solo cobros con estado pendiente."
+          }
+        },
+        {
+          "name": "GET Cobro por ID",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/cobros/1",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "cobros",
+                "1"
+              ]
+            },
+            "description": "**Autenticado.** Reemplaza `1` por el ID del cobro."
+          }
+        }
+      ]
+    },
+    {
+      "name": "07 – Pagos",
+      "description": "Registro y consulta de pagos.",
+      "item": [
+        {
+          "name": "GET Pagos (lista paginada)",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/pagos?page=0&size=20",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "pagos"
+              ],
+              "query": [
+                {
+                  "key": "contratoId",
+                  "value": "",
+                  "description": "Filtrar por contrato (opcional)",
+                  "disabled": true
+                },
+                {
+                  "key": "page",
+                  "value": "0"
+                },
+                {
+                  "key": "size",
+                  "value": "20"
+                }
+              ]
+            },
+            "description": "**ADMIN / AGENTE.**"
+          }
+        },
+        {
+          "name": "GET Pago por ID",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/pagos/1",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "pagos",
+                "1"
+              ]
+            },
+            "description": "**Autenticado.**"
+          }
+        },
+        {
+          "name": "GET Pagos por Contrato",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/pagos/contrato/1",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "pagos",
+                "contrato",
+                "1"
+              ]
+            },
+            "description": "**Autenticado.** Todos los pagos de un contrato."
+          }
+        },
+        {
+          "name": "POST Registrar Pago",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"contratoId\": 1,\n  \"cobroId\": 1,\n  \"metodoId\": 4,\n  \"montoPagado\": 300.00,\n  \"fechaPago\": \"2026-06-02T12:00:00-06:00\",\n  \"referenciaExterna\": \"TRX-001\",\n  \"notas\": \"Pago mensualidad junio\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/pagos",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "pagos"
+              ]
+            },
+            "description": "**ADMIN / AGENTE.**\n\nCampos requeridos: `contratoId`, `metodoId`, `montoPagado`.\n`cobroId` es opcional pero se recomienda para asociar el pago al cobro correspondiente.\n\nMétodos de pago (metodoId): 1=MERCADO_PAGO, 2=TRANSFERENCIA, 3=OXXO, 4=EFECTIVO."
+          }
+        }
+      ]
+    },
+    {
+      "name": "08 – Notificaciones",
+      "description": "Notificaciones del usuario autenticado. El sistema las genera internamente.",
+      "item": [
+        {
+          "name": "GET Notificaciones",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/notificaciones?page=0&size=20",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "notificaciones"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "0"
+                },
+                {
+                  "key": "size",
+                  "value": "20"
+                }
+              ]
+            },
+            "description": "**Autenticado.** Lista las notificaciones del usuario autenticado. Ordenadas por `createdAt DESC`."
+          }
+        },
+        {
+          "name": "GET Contar No Leídas",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/notificaciones/no-leidas",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "notificaciones",
+                "no-leidas"
+              ]
+            },
+            "description": "**Autenticado.** Respuesta: `{ \"count\": 5 }`."
+          }
+        },
+        {
+          "name": "PATCH Marcar Todas como Leídas",
+          "request": {
+            "method": "PATCH",
+            "url": {
+              "raw": "{{base_url}}/notificaciones/marcar-leidas",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "notificaciones",
+                "marcar-leidas"
+              ]
+            },
+            "description": "**Autenticado.** Sin body. Respuesta: `204 No Content`."
+          }
+        }
+      ]
+    },
+    {
+      "name": "09 – Flujo Completo (secuencia recomendada)",
+      "description": "Ejecuta estos requests en orden. Cada uno tiene un script que extrae el ID de la respuesta y lo guarda en una variable de colección para usarlo en el siguiente paso.",
+      "item": [
+        {
+          "name": "Paso 1 – Login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const json = pm.response.json();",
+                  "pm.collectionVariables.set('access_token',  json.accessToken);",
+                  "pm.collectionVariables.set('refresh_token', json.refreshToken);",
+                  "pm.test('Token capturado', () => pm.expect(json.accessToken).to.be.a('string').and.not.empty);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"admin\",\n  \"password\": \"Admin123!\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/auth/login",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "auth",
+                "login"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Paso 2 – GET Métodos de Pago",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "const json = pm.response.json();",
+                  "const efectivo = json.find(m => m.clave === 'EFECTIVO');",
+                  "if (efectivo) {",
+                  "    pm.collectionVariables.set('metodo_id', efectivo.id);",
+                  "    console.log('metodo_id (EFECTIVO):', efectivo.id);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/catalogos/metodos-pago",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "catalogos",
+                "metodos-pago"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Paso 3 – GET Planes",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "const json = pm.response.json();",
+                  "if (json.length > 0) {",
+                  "    pm.collectionVariables.set('plan_id', json[0].id);",
+                  "    console.log('plan_id:', json[0].id, '-', json[0].nombre);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/planes",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "planes"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Paso 4 – GET Sucursales",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "const json = pm.response.json();",
+                  "if (json.length > 0) {",
+                  "    pm.collectionVariables.set('sucursal_id', json[0].id);",
+                  "    console.log('sucursal_id:', json[0].id);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/catalogos/sucursales",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "catalogos",
+                "sucursales"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Paso 5 – POST Crear Persona (Titular)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Persona creada (201)', () => pm.response.to.have.status(201));",
+                  "const json = pm.response.json();",
+                  "pm.collectionVariables.set('persona_id', json.id);",
+                  "console.log('persona_id:', json.id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Juan\",\n  \"apPaterno\": \"García\",\n  \"apMaterno\": \"López\",\n  \"fechaNacimiento\": \"1985-03-15\",\n  \"sexo\": \"M\",\n  \"curp\": \"GALJ850315HDFRZN04\",\n  \"rfc\": \"GALJ850315AB1\",\n  \"telefono\": \"5512345678\",\n  \"correo\": \"juan@example.com\",\n  \"calle\": \"Av. Principal\",\n  \"numeroExt\": \"10\",\n  \"colonia\": \"Centro\",\n  \"municipio\": \"Iztapalapa\",\n  \"estado\": \"Ciudad de México\",\n  \"codigoPostal\": \"09510\",\n  \"pais\": \"México\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/personas",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "personas"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Paso 6 – POST Crear Contrato",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Contrato creado (201)', () => pm.response.to.have.status(201));",
+                  "const json = pm.response.json();",
+                  "pm.collectionVariables.set('contrato_id', json.id);",
+                  "console.log('contrato_id:', json.id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"personaId\": {{persona_id}},\n  \"planId\": {{plan_id}},\n  \"sucursalId\": {{sucursal_id}},\n  \"empleadoVendedorId\": null,\n  \"fechaInicio\": \"2026-06-01\",\n  \"precioContratado\": 18000.00,\n  \"mensualidadPactada\": 300.00,\n  \"notas\": \"Contrato de prueba\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/contratos",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "contratos"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Paso 7 – GET Cobros del Contrato",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "const json = pm.response.json();",
+                  "const cobros = Array.isArray(json) ? json : (json.content || []);",
+                  "if (cobros.length > 0) {",
+                  "    pm.collectionVariables.set('cobro_id', cobros[0].id);",
+                  "    console.log('cobro_id (primer cobro):', cobros[0].id);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/cobros/contrato/{{contrato_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "cobros",
+                "contrato",
+                "{{contrato_id}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Paso 8 – POST Registrar Pago",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Pago registrado (201)', () => pm.response.to.have.status(201));",
+                  "const json = pm.response.json();",
+                  "pm.collectionVariables.set('pago_id', json.id);",
+                  "console.log('pago_id:', json.id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"contratoId\": {{contrato_id}},\n  \"cobroId\": {{cobro_id}},\n  \"metodoId\": {{metodo_id}},\n  \"montoPagado\": 300.00,\n  \"fechaPago\": \"2026-06-02T12:00:00-06:00\",\n  \"referenciaExterna\": \"TRX-001\",\n  \"notas\": \"Pago mensualidad junio\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/pagos",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "pagos"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Paso 9 – GET Pagos del Contrato",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Al menos un pago registrado', () => {",
+                  "    const json = pm.response.json();",
+                  "    const pagos = Array.isArray(json) ? json : (json.content || []);",
+                  "    pm.expect(pagos.length).to.be.above(0);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/pagos/contrato/{{contrato_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "pagos",
+                "contrato",
+                "{{contrato_id}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Paso 10 – GET Notificaciones",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/notificaciones?page=0&size=20",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "notificaciones"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "0"
+                },
+                {
+                  "key": "size",
+                  "value": "20"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}
