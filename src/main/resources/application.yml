@@ -1,4 +1,8 @@
 spring:
+  servlet:
+    multipart:
+      max-file-size: 5MB
+      max-request-size: 5MB
   datasource:
     url: jdbc:postgresql://localhost:5432/postgres
     username: ${DB_USERNAME:postgres}
@@ -43,7 +47,8 @@ app:
     expiration-ms: ${JWT_EXPIRATION_MS:86400000}          # 24 h
     refresh-expiration-ms: ${JWT_REFRESH_MS:604800000}    # 7 d
   cors:
-    allowed-origins: ${CORS_ORIGINS:http://localhost:4200,http://localhost:3000}
+    allowed-origins: ${CORS_ORIGINS:http://localhost:4200,http://localhost:3000,http://192.168.0.104:4200,http://192.168.0.104:3000}
+  profile-pictures-dir: ${PROFILE_PICTURES_DIR:/profile_pictures}
 
 management:
   endpoints:

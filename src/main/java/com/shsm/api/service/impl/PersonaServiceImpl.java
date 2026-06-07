@@ -6,6 +6,7 @@ import com.shsm.api.entity.Persona;
 import com.shsm.api.exception.BusinessException;
 import com.shsm.api.exception.ResourceNotFoundException;
 import com.shsm.api.repository.PersonaRepository;
+import com.shsm.api.repository.UsuarioRepository;
 import com.shsm.api.service.PersonaService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -21,6 +22,7 @@ import java.time.OffsetDateTime;
 public class PersonaServiceImpl implements PersonaService {
 
     private final PersonaRepository personaRepository;
+    private final UsuarioRepository usuarioRepository;
 
     @Override
     @Transactional(readOnly = true)
@@ -64,6 +66,29 @@ public class PersonaServiceImpl implements PersonaService {
         }
         mapToEntity(persona, request);
         return PersonaResponse.from(personaRepository.save(persona));
+    }
+
+    @Override
+    @Transactional
+    public PersonaResponse actualizarMiPerfil(String username, PersonaRequest request) {
+        Persona persona = usuarioRepository.findByUsername(username)
+                .orElseThrow(() -> new ResourceNotFoundException("Usuario no encontrado: " + username))
+                .getPersona();
+        if (StringUtils.hasText(request.correo()) &&
+                !request.correo().equals(persona.getCorreo()) &&
+                personaRepository.findByCorreo(request.correo()).isPresent()) {
+            throw new BusinessException("El correo ya está registrado: " + request.correo());
+        }
+        mapToEntity(persona, request);
+        return PersonaResponse.from(personaRepository.save(persona));
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public String obtenerCurpPorUsername(String username) {
+        return usuarioRepository.findByUsername(username)
+                .map(u -> u.getPersona() != null ? u.getPersona().getCurp() : null)
+                .orElse(null);
     }
 
     @Override

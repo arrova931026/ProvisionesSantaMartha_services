@@ -1,5 +1,6 @@
 package com.shsm.api.service.impl;
 
+import com.shsm.api.dto.contrato.BeneficiarioResponse;
 import com.shsm.api.dto.contrato.ContratoRequest;
 import com.shsm.api.dto.contrato.ContratoResponse;
 import com.shsm.api.entity.CobroProgramado;
@@ -34,6 +35,7 @@ public class ContratoServiceImpl implements ContratoService {
     private final EstadoContratoRepository estadoContratoRepository;
     private final EstadoPagoRepository estadoPagoRepository;
     private final CobroProgramadoRepository cobroProgramadoRepository;
+    private final BeneficiarioRepository beneficiarioRepository;
 
     @Override
     @Transactional(readOnly = true)
@@ -95,6 +97,13 @@ public class ContratoServiceImpl implements ContratoService {
         Contrato saved = contratoRepository.save(contrato);
         generarCobros(saved, plan.getDuracionMeses());
         return ContratoResponse.from(saved);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<BeneficiarioResponse> listarBeneficiariosDeContrato(Long contratoId) {
+        return beneficiarioRepository.findByContratoIdAndActivoTrue(contratoId)
+                .stream().map(BeneficiarioResponse::from).toList();
     }
 
     @Override

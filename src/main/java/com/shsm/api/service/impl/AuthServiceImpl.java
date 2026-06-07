@@ -67,7 +67,7 @@ public class AuthServiceImpl implements AuthService {
         usuarioRepository.save(usuario);
 
         return LoginResponse.of(accessToken, refreshToken, expirationMs / 1000,
-                userDetails.getUsername(), role);
+                userDetails.getUsername(), role, usuario.getPersona().getId());
     }
 
     @Override
@@ -100,7 +100,7 @@ public class AuthServiceImpl implements AuthService {
         tokenSesionRepository.save(nuevoToken);
 
         return LoginResponse.of(newAccess, newRefresh, expirationMs / 1000,
-                usuario.getUsername(), role);
+                usuario.getUsername(), role, usuario.getPersona().getId());
     }
 
     @Override

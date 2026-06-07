@@ -1,5 +1,6 @@
 package com.shsm.api.controller;
 
+import com.shsm.api.dto.contrato.BeneficiarioResponse;
 import com.shsm.api.dto.contrato.ContratoRequest;
 import com.shsm.api.dto.contrato.ContratoResponse;
 import com.shsm.api.service.ContratoService;
@@ -38,6 +39,11 @@ public class ContratoController {
     @GetMapping("/persona/{personaId}")
     public ResponseEntity<List<ContratoResponse>> listarPorPersona(@PathVariable Long personaId) {
         return ResponseEntity.ok(contratoService.listarPorPersona(personaId));
+    }
+
+    @GetMapping("/{id}/beneficiarios")
+    public ResponseEntity<List<BeneficiarioResponse>> listarBeneficiarios(@PathVariable Long id) {
+        return ResponseEntity.ok(contratoService.listarBeneficiariosDeContrato(id));
     }
 
     @PostMapping

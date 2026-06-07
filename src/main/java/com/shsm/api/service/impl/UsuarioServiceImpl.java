@@ -43,10 +43,7 @@ public class UsuarioServiceImpl implements UsuarioService {
         }
 
         // Invalidar todos los tokens activos del usuario
-        tokenSesionRepository.findByUsuarioIdAndUsadoFalse(id).forEach(t -> {
-            t.setUsado(true);
-            tokenSesionRepository.save(t);
-        });
+        tokenSesionRepository.deleteById(id);
 
         OffsetDateTime ahora = OffsetDateTime.now();
 
