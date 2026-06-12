@@ -3,9 +3,14 @@ package com.shsm.api.service.impl;
 import com.shsm.api.dto.auth.LoginRequest;
 import com.shsm.api.dto.auth.LoginResponse;
 import com.shsm.api.dto.auth.RefreshTokenRequest;
+import com.shsm.api.dto.auth.RegistroRequest;
+import com.shsm.api.entity.Persona;
 import com.shsm.api.entity.TokenSesion;
 import com.shsm.api.entity.Usuario;
+import com.shsm.api.entity.catalog.Role;
 import com.shsm.api.exception.BusinessException;
+import com.shsm.api.repository.PersonaRepository;
+import com.shsm.api.repository.RoleRepository;
 import com.shsm.api.repository.TokenSesionRepository;
 import com.shsm.api.repository.UsuarioRepository;
 import com.shsm.api.security.JwtTokenProvider;
@@ -16,6 +21,7 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -29,6 +35,9 @@ public class AuthServiceImpl implements AuthService {
     private final JwtTokenProvider tokenProvider;
     private final UsuarioRepository usuarioRepository;
     private final TokenSesionRepository tokenSesionRepository;
+    private final PersonaRepository personaRepository;
+    private final RoleRepository roleRepository;
+    private final PasswordEncoder passwordEncoder;
 
     @Value("${app.jwt.refresh-expiration-ms}")
     private long refreshExpirationMs;
@@ -110,5 +119,40 @@ public class AuthServiceImpl implements AuthService {
             t.setUsado(true);
             tokenSesionRepository.save(t);
         });
+    }
+
+    @Override
+    @Transactional
+    public void registro(RegistroRequest request) {
+        if (usuarioRepository.existsByUsername(request.username())) {
+            throw new BusinessException("El nombre de usuario ya está en uso");
+        }
+        if (personaRepository.findByCurp(request.curp()).isPresent()) {
+            throw new BusinessException("El CURP ya está registrado");
+        }
+        if (personaRepository.findByCorreo(request.correo()).isPresent()) {
+            throw new BusinessException("El correo electrónico ya está registrado");
+        }
+
+        Persona persona = new Persona();
+        persona.setNombre(request.nombre());
+        persona.setApPaterno(request.apPaterno());
+        persona.setApMaterno(request.apMaterno());
+        persona.setFechaNacimiento(request.fechaNacimiento());
+        persona.setSexo(request.sexo());
+        persona.setCurp(request.curp().toUpperCase());
+        persona.setTelefono(request.telefono());
+        persona.setCorreo(request.correo());
+        personaRepository.save(persona);
+
+        Role rolCliente = roleRepository.findByClave("CLIENTE")
+                .orElseThrow(() -> new BusinessException("Rol CLIENTE no encontrado"));
+
+        Usuario usuario = new Usuario();
+        usuario.setPersona(persona);
+        usuario.setRol(rolCliente);
+        usuario.setUsername(request.username());
+        usuario.setPasswordHash(passwordEncoder.encode(request.password()));
+        usuarioRepository.save(usuario);
     }
 }
