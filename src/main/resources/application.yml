@@ -4,7 +4,7 @@ spring:
       max-file-size: 5MB
       max-request-size: 5MB
   datasource:
-    url: jdbc:postgresql://santa_martha_bd_user:jDXx0WgBoCWqckvxZzoMEoJtVfX8AACb@dpg-d8m0501kh4rs73964g40-a/santa_martha_bd
+    url: ${DB_URL:jdbc:postgresql://dpg-d8m0501kh4rs73964g40-a:5432/santa_martha_bd}
     username: ${DB_USERNAME:santa_martha_bd_user}
     password: ${DB_PASSWORD:jDXx0WgBoCWqckvxZzoMEoJtVfX8AACb}
     driver-class-name: org.postgresql.Driver
