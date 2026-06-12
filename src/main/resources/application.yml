@@ -47,7 +47,7 @@ app:
     expiration-ms: ${JWT_EXPIRATION_MS:86400000}          # 24 h
     refresh-expiration-ms: ${JWT_REFRESH_MS:604800000}    # 7 d
   cors:
-    allowed-origins: ${CORS_ORIGINS:http://localhost:4200,http://localhost:3000,http://192.168.0.102:4200,http://192.168.0.102:3000}
+    allowed-origins: ${CORS_ORIGINS:http://localhost:4200,http://localhost:3000,http://192.168.0.102:4200,http://192.168.0.102:3000,https://provisionessantamartha-frontend.onrender.com}
   profile-pictures-dir: ${PROFILE_PICTURES_DIR:/profile_pictures}
 
 management:
