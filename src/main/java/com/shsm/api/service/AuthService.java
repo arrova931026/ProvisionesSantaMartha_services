@@ -1,5 +1,6 @@
 package com.shsm.api.service;
 
+import com.shsm.api.dto.auth.ChangePasswordRequest;
 import com.shsm.api.dto.auth.ForgotPasswordRequest;
 import com.shsm.api.dto.auth.GoogleLoginRequest;
 import com.shsm.api.dto.auth.LoginRequest;
@@ -16,4 +17,5 @@ public interface AuthService {
     void registro(RegistroRequest request);
     void forgotPassword(ForgotPasswordRequest request);
     void resetPassword(ResetPasswordRequest request);
+    void changePassword(ChangePasswordRequest request);
 }

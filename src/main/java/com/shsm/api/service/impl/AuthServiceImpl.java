@@ -1,5 +1,6 @@
 package com.shsm.api.service.impl;
 
+import com.shsm.api.dto.auth.ChangePasswordRequest;
 import com.shsm.api.dto.auth.ForgotPasswordRequest;
 import com.shsm.api.dto.auth.GoogleLoginRequest;
 import com.shsm.api.dto.auth.LoginRequest;
@@ -26,6 +27,7 @@ import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -98,7 +100,8 @@ public class AuthServiceImpl implements AuthService {
         usuarioRepository.save(usuario);
 
         return LoginResponse.of(accessToken, refreshToken, expirationMs / 1000,
-                userDetails.getUsername(), role, usuario.getPersona().getId());
+                userDetails.getUsername(), role, usuario.getPersona().getId(),
+                usuario.getPersona().getNombre());
     }
 
     @Override
@@ -163,7 +166,7 @@ public class AuthServiceImpl implements AuthService {
         usuarioRepository.save(usuario);
 
         return LoginResponse.of(accessToken, refreshToken, expirationMs / 1000,
-                usuario.getUsername(), role, persona.getId());
+                usuario.getUsername(), role, persona.getId(), persona.getNombre());
     }
 
     private Map<String, Object> verifyGoogleToken(String idToken) {
@@ -211,7 +214,8 @@ public class AuthServiceImpl implements AuthService {
         tokenSesionRepository.save(nuevoToken);
 
         return LoginResponse.of(newAccess, newRefresh, expirationMs / 1000,
-                usuario.getUsername(), role, usuario.getPersona().getId());
+                usuario.getUsername(), role, usuario.getPersona().getId(),
+                usuario.getPersona().getNombre());
     }
 
     @Override
@@ -307,5 +311,28 @@ public class AuthServiceImpl implements AuthService {
 
         ts.setUsado(true);
         tokenSesionRepository.save(ts);
+    }
+
+    @Override
+    @Transactional
+    public void changePassword(ChangePasswordRequest request) {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth == null || !auth.isAuthenticated() || "anonymousUser".equals(auth.getPrincipal())) {
+            throw new BusinessException("Debe iniciar sesión para cambiar su contraseña");
+        }
+        String username = auth.getName();
+        Usuario usuario = usuarioRepository.findByUsername(username)
+                .orElseThrow(() -> new BusinessException("Usuario no encontrado"));
+
+        if (!passwordEncoder.matches(request.passwordActual(), usuario.getPasswordHash())) {
+            throw new BusinessException("La contraseña actual es incorrecta");
+        }
+        if (request.passwordActual().equals(request.nuevaPassword())) {
+            throw new BusinessException("La nueva contraseña debe ser diferente a la actual");
+        }
+
+        usuario.setPasswordHash(passwordEncoder.encode(request.nuevaPassword()));
+        usuario.setRequiereCambioPw(false);
+        usuarioRepository.save(usuario);
     }
 }

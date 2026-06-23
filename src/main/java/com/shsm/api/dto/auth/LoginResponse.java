@@ -7,10 +7,11 @@ public record LoginResponse(
         long expiresIn,
         String username,
         String role,
-        Long personaId
+        Long personaId,
+        String nombre
 ) {
     public static LoginResponse of(String accessToken, String refreshToken,
-                                    long expiresIn, String username, String role, Long personaId) {
-        return new LoginResponse(accessToken, refreshToken, "Bearer", expiresIn, username, role, personaId);
+                                    long expiresIn, String username, String role, Long personaId, String nombre) {
+        return new LoginResponse(accessToken, refreshToken, "Bearer", expiresIn, username, role, personaId, nombre);
     }
 }

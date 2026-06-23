@@ -1,5 +1,6 @@
 package com.shsm.api.controller;
 
+import com.shsm.api.dto.auth.ChangePasswordRequest;
 import com.shsm.api.dto.auth.ForgotPasswordRequest;
 import com.shsm.api.dto.auth.GoogleLoginRequest;
 import com.shsm.api.dto.auth.LoginRequest;
@@ -57,6 +58,12 @@ public class AuthController {
     @PostMapping("/reset-password")
     public ResponseEntity<Void> resetPassword(@Valid @RequestBody ResetPasswordRequest request) {
         authService.resetPassword(request);
+        return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping("/change-password")
+    public ResponseEntity<Void> changePassword(@Valid @RequestBody ChangePasswordRequest request) {
+        authService.changePassword(request);
         return ResponseEntity.noContent().build();
     }
 }
