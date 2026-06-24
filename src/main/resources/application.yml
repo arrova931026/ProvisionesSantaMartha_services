@@ -61,7 +61,7 @@ app:
     refresh-expiration-ms: ${JWT_REFRESH_MS:604800000}    # 7 d
   cors:
     allowed-origins: ${CORS_ORIGINS:http://localhost:4200,http://localhost:3000,http://192.168.0.102:4200,http://192.168.0.102:3000,https://provisionessantamartha-frontend.onrender.com}
-  profile-pictures-dir: ${PROFILE_PICTURES_DIR:/profile_pictures}
+  profile-pictures-dir: ${PROFILE_PICTURES_DIR:profile_pictures}
   frontend-url: ${FRONTEND_URL:https://provisionessantamartha-frontend.onrender.com}
   google:
     client-id: ${GOOGLE_CLIENT_ID:509130416997-v65lse6q7fcfoh8qhq8jbgi6anuu2k3p.apps.googleusercontent.com}
