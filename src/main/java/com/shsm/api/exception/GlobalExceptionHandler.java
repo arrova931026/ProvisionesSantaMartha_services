@@ -2,6 +2,7 @@ package com.shsm.api.exception;
 
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
@@ -67,6 +68,22 @@ public class GlobalExceptionHandler {
                                                         HttpServletRequest req) {
         return ResponseEntity.status(HttpStatus.FORBIDDEN)
                 .body(ApiError.of(403, "Forbidden", "Acceso denegado", req.getRequestURI()));
+    }
+
+    @ExceptionHandler(DataIntegrityViolationException.class)
+    public ResponseEntity<ApiError> handleDataIntegrity(DataIntegrityViolationException ex,
+                                                         HttpServletRequest req) {
+        String msg = "No se pudo guardar el registro por una restricción de integridad.";
+        String cause = ex.getMostSpecificCause().getMessage();
+        if (cause != null) {
+            if (cause.contains("personas_curp_key")) msg = "La CURP ingresada ya pertenece a otro expediente.";
+            else if (cause.contains("personas_rfc_key"))  msg = "El RFC ingresado ya pertenece a otro expediente.";
+            else if (cause.contains("personas_correo_key") || cause.contains("personas_email_key"))
+                msg = "El correo electrónico ya está registrado.";
+        }
+        log.warn("Integridad de datos en {}: {}", req.getRequestURI(), cause);
+        return ResponseEntity.status(HttpStatus.CONFLICT)
+                .body(ApiError.of(409, "Conflict", msg, req.getRequestURI()));
     }
 
     @ExceptionHandler(Exception.class)

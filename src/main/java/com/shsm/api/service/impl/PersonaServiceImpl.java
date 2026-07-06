@@ -79,6 +79,16 @@ public class PersonaServiceImpl implements PersonaService {
                 personaRepository.findByCorreo(request.correo()).isPresent()) {
             throw new BusinessException("El correo ya está registrado: " + request.correo());
         }
+        if (StringUtils.hasText(request.curp()) &&
+                !request.curp().equalsIgnoreCase(persona.getCurp()) &&
+                personaRepository.findByCurp(request.curp()).isPresent()) {
+            throw new BusinessException("La CURP ya está registrada en otro expediente: " + request.curp());
+        }
+        if (StringUtils.hasText(request.rfc()) &&
+                !request.rfc().equalsIgnoreCase(persona.getRfc()) &&
+                personaRepository.findByRfc(request.rfc()).filter(p -> !p.getId().equals(persona.getId())).isPresent()) {
+            throw new BusinessException("El RFC ya está registrado en otro expediente: " + request.rfc());
+        }
         mapToEntity(persona, request);
         return PersonaResponse.from(personaRepository.save(persona));
     }
