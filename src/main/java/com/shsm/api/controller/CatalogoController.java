@@ -30,9 +30,15 @@ public class CatalogoController {
         return ResponseEntity.ok(roleRepository.findAll());
     }
 
+    private static final java.util.Set<String> CLAVES_BENEFICIARIO_PERMITIDAS = java.util.Set.of("CONYUGE", "HIJO");
+
     @GetMapping("/parentescos")
     public ResponseEntity<List<Parentesco>> parentescos() {
-        return ResponseEntity.ok(parentescoRepository.findByActivoTrue());
+        return ResponseEntity.ok(
+                parentescoRepository.findByActivoTrue().stream()
+                        .filter(p -> CLAVES_BENEFICIARIO_PERMITIDAS.contains(p.getClave()))
+                        .toList()
+        );
     }
 
     @GetMapping("/estados-contrato")

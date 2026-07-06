@@ -31,9 +31,9 @@ import java.util.Set;
 @RequiredArgsConstructor
 public class DocumentoController {
 
-    private final DocumentoRepository documentoRepository;
-    private final PersonaRepository personaRepository;
-    private final TipoDocumentoRepository tipoDocumentoRepository;
+    private final DocumentoRepository      documentoRepository;
+    private final PersonaRepository        personaRepository;
+    private final TipoDocumentoRepository  tipoDocumentoRepository;
 
     @Value("${app.docs-dir:docs}")
     private String docsDir;

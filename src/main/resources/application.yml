@@ -1,8 +1,8 @@
 spring:
   servlet:
     multipart:
-      max-file-size: 8MB
-      max-request-size: 20MB
+      max-file-size: 30MB
+      max-request-size: 35MB
   datasource:
     url: ${DB_URL}
     username: ${DB_USERNAME}
@@ -71,6 +71,15 @@ app:
 
 gemini:
   api-key: ${GEMINI_API_KEY}
+
+# ─── Vosk Speech Recognition ─────────────────────────────────────────────────
+# Descarga el modelo español pequeño (≈40 MB) de:
+#   https://alphacephei.com/vosk/models  →  vosk-model-small-es-0.42.zip
+# Descomprime y apunta la ruta aquí (o con la variable de entorno VOSK_MODEL_PATH).
+# Si la ruta queda vacía la validación se omite y el video se acepta sin revisar.
+vosk:
+  model-path: ${VOSK_MODEL_PATH:}
+  ffmpeg-path: ${VOSK_FFMPEG_PATH:ffmpeg}
 
 management:
   endpoints:

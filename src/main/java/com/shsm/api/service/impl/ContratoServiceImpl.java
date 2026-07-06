@@ -10,6 +10,7 @@ import com.shsm.api.entity.Contrato;
 import com.shsm.api.entity.Persona;
 import com.shsm.api.entity.catalog.EstadoContrato;
 import com.shsm.api.entity.catalog.EstadoPago;
+import com.shsm.api.entity.catalog.Parentesco;
 import com.shsm.api.exception.BusinessException;
 import com.shsm.api.exception.ResourceNotFoundException;
 import com.shsm.api.repository.*;
@@ -154,8 +155,22 @@ public class ContratoServiceImpl implements ContratoService {
         benef.setEsTitular(false);
 
         if (req.parentescoId() != null) {
-            benef.setParentesco(parentescoRepository.findById(req.parentescoId())
-                    .orElseThrow(() -> new ResourceNotFoundException("Parentesco", req.parentescoId())));
+            Parentesco parentesco = parentescoRepository.findById(req.parentescoId())
+                    .orElseThrow(() -> new ResourceNotFoundException("Parentesco", req.parentescoId()));
+            if (!java.util.Set.of("CONYUGE", "HIJO").contains(parentesco.getClave())) {
+                throw new BusinessException("Solo se permiten beneficiarios con parentesco Cónyuge o Hijo(a).");
+            }
+            if ("HIJO".equals(parentesco.getClave())) {
+                if (req.fechaNacimiento() == null || req.fechaNacimiento().isBlank()) {
+                    throw new BusinessException("La fecha de nacimiento es requerida para beneficiarios con parentesco Hijo(a).");
+                }
+                int edad = Period.between(LocalDate.parse(req.fechaNacimiento()), LocalDate.now()).getYears();
+                if (edad > 21) {
+                    throw new BusinessException(
+                        "El beneficiario con parentesco Hijo(a) no puede tener más de 21 años (edad detectada: " + edad + " años).");
+                }
+            }
+            benef.setParentesco(parentesco);
         }
 
         return BeneficiarioResponse.from(beneficiarioRepository.save(benef));
@@ -221,7 +236,6 @@ public class ContratoServiceImpl implements ContratoService {
         if (isBlank(persona.getCurp()))          faltantes.add("CURP");
         if (isBlank(persona.getRfc()))           faltantes.add("RFC");
         if (persona.getFechaNacimiento() == null) faltantes.add("fecha de nacimiento");
-        if (isBlank(persona.getSexo()))          faltantes.add("sexo");
         if (isBlank(persona.getTelefono()))      faltantes.add("teléfono");
         if (isBlank(persona.getCorreo()))        faltantes.add("correo electrónico");
         if (isBlank(persona.getCalle()))         faltantes.add("calle");
