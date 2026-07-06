@@ -130,7 +130,7 @@
   <h1>API REST</h1>
   <h2>Sociedad Humanista Santa Martha S.A. de C.V.</h2>
   <p class="subtitle">Documentación de servicios web para consumo con SoapUI</p>
-  <div class="badge">Versión 1.0.0 &nbsp;·&nbsp; Spring Boot 3.4.0 &nbsp;·&nbsp; Junio 2026</div>
+  <div class="badge">Versión 1.1.0 &nbsp;·&nbsp; Spring Boot 3.4.0 &nbsp;·&nbsp; Julio 2026</div>
 </div>
 
 <!-- ═══════════════════════════════════════════════════ ÍNDICE -->
@@ -139,14 +139,16 @@
   <ol>
     <li>Información general <span>– URL base, autenticación JWT, roles</span></li>
     <li>Configuración de SoapUI <span>– proyecto REST, variable de token</span></li>
-    <li>Módulo: Autenticación <span>– login, refresh, logout</span></li>
+    <li>Módulo: Autenticación <span>– login, Google, registro, refresh, logout, contraseñas</span></li>
     <li>Módulo: Catálogos <span>– roles, parentescos, estados, métodos de pago…</span></li>
     <li>Módulo: Planes funerarios <span>– listar, obtener, crear, actualizar, desactivar</span></li>
-    <li>Módulo: Personas <span>– CRUD completo</span></li>
-    <li>Módulo: Contratos <span>– crear, listar, cambiar estado, cancelar</span></li>
+    <li>Módulo: Personas <span>– CRUD completo + perfil propio + foto</span></li>
+    <li>Módulo: Contratos <span>– crear, listar, beneficiarios, cambiar estado, cancelar</span></li>
     <li>Módulo: Cobros programados <span>– consulta por contrato</span></li>
     <li>Módulo: Pagos <span>– registrar y consultar</span></li>
-    <li>Módulo: Notificaciones <span>– listar, marcar leídas</span></li>
+    <li>Módulo: Notificaciones <span>– listar, marcar leídas, marcar individual</span></li>
+    <li>Módulo: Usuarios <span>– listar, dar de baja</span></li>
+    <li>Módulo: OCR <span>– extracción de datos desde INE y documentos</span></li>
     <li>Flujo de prueba recomendado <span>– secuencia paso a paso</span></li>
     <li>Inserción del usuario administrador <span>– SQL y pasos en pgAdmin</span></li>
   </ol>
@@ -288,6 +290,99 @@ testRunner.testCase.testSuite.project.setPropertyValue(
       <p style="margin-top:6px">Respuesta: <strong>204 No Content</strong></p>
     </div>
   </div>
+
+  <!-- GOOGLE LOGIN -->
+  <div class="endpoint">
+    <div class="endpoint-header">
+      <span class="method POST">POST</span>
+      <span class="endpoint-path">/auth/google</span>
+      <span class="endpoint-desc">Iniciar sesión con cuenta de Google (OAuth2)</span>
+    </div>
+    <div class="endpoint-body">
+      <p><span class="tag tag-public">Público – no requiere token</span></p>
+      <p style="margin-top:8px"><strong>Body (JSON):</strong></p>
+      <div class="json-block">{
+  <span class="json-key">"idToken"</span>: <span class="json-str">"eyJhbGciOiJSUzI1NiJ9..."</span>  <span style="color:#666">// Token ID devuelto por Google Sign-In</span>
+}</div>
+      <p style="margin-top:10px"><strong>Respuesta 200:</strong> mismo objeto <code>LoginResponse</code> que <code>/auth/login</code></p>
+    </div>
+  </div>
+
+  <!-- REGISTRO -->
+  <div class="endpoint">
+    <div class="endpoint-header">
+      <span class="method POST">POST</span>
+      <span class="endpoint-path">/auth/registro</span>
+      <span class="endpoint-desc">Auto-registro de nuevo cliente</span>
+    </div>
+    <div class="endpoint-body">
+      <p><span class="tag tag-public">Público – no requiere token</span></p>
+      <p style="margin-top:8px"><strong>Body (JSON):</strong></p>
+      <div class="json-block">{
+  <span class="json-key">"nombre"</span>:          <span class="json-str">"María"</span>,              <span style="color:#666">// Requerido (2-100 chars)</span>
+  <span class="json-key">"apPaterno"</span>:       <span class="json-str">"Hernández"</span>,         <span style="color:#666">// Requerido (2-100 chars)</span>
+  <span class="json-key">"apMaterno"</span>:       <span class="json-str">"Ruiz"</span>,              <span style="color:#666">// Opcional</span>
+  <span class="json-key">"fechaNacimiento"</span>: <span class="json-str">"1990-07-20"</span>,        <span style="color:#666">// Requerido – YYYY-MM-DD</span>
+  <span class="json-key">"sexo"</span>:            <span class="json-str">"F"</span>,               <span style="color:#666">// Requerido – M o F</span>
+  <span class="json-key">"curp"</span>:            <span class="json-str">"HERR900720MDFRZR01"</span>, <span style="color:#666">// Requerido – 18 chars</span>
+  <span class="json-key">"telefono"</span>:        <span class="json-str">"5598765432"</span>,        <span style="color:#666">// Requerido – 10 dígitos</span>
+  <span class="json-key">"correo"</span>:          <span class="json-str">"maria@example.com"</span>, <span style="color:#666">// Requerido</span>
+  <span class="json-key">"username"</span>:        <span class="json-str">"maria.hernandez"</span>,   <span style="color:#666">// Requerido (4-100 chars)</span>
+  <span class="json-key">"password"</span>:        <span class="json-str">"MiClave123!"</span>       <span style="color:#666">// Requerido (mín. 8 chars)</span>
+}</div>
+      <p style="margin-top:6px">Respuesta: <strong>201 Created</strong> (sin body)</p>
+    </div>
+  </div>
+
+  <!-- FORGOT PASSWORD -->
+  <div class="endpoint">
+    <div class="endpoint-header">
+      <span class="method POST">POST</span>
+      <span class="endpoint-path">/auth/forgot-password</span>
+      <span class="endpoint-desc">Solicitar enlace de restablecimiento de contraseña</span>
+    </div>
+    <div class="endpoint-body">
+      <p><span class="tag tag-public">Público – no requiere token</span></p>
+      <div class="json-block">{
+  <span class="json-key">"correo"</span>: <span class="json-str">"maria@example.com"</span>
+}</div>
+      <p style="margin-top:6px">Respuesta: <strong>204 No Content</strong> – El sistema envía un correo con el token de restablecimiento.</p>
+    </div>
+  </div>
+
+  <!-- RESET PASSWORD -->
+  <div class="endpoint">
+    <div class="endpoint-header">
+      <span class="method POST">POST</span>
+      <span class="endpoint-path">/auth/reset-password</span>
+      <span class="endpoint-desc">Restablecer contraseña usando el token recibido por correo</span>
+    </div>
+    <div class="endpoint-body">
+      <p><span class="tag tag-public">Público – no requiere token JWT</span></p>
+      <div class="json-block">{
+  <span class="json-key">"token"</span>:         <span class="json-str">"abc123xyz..."</span>,   <span style="color:#666">// Token del correo de restablecimiento</span>
+  <span class="json-key">"nuevaPassword"</span>: <span class="json-str">"NuevaClave456!"</span>  <span style="color:#666">// Mín. 8 caracteres</span>
+}</div>
+      <p style="margin-top:6px">Respuesta: <strong>204 No Content</strong></p>
+    </div>
+  </div>
+
+  <!-- CHANGE PASSWORD -->
+  <div class="endpoint">
+    <div class="endpoint-header">
+      <span class="method POST">POST</span>
+      <span class="endpoint-path">/auth/change-password</span>
+      <span class="endpoint-desc">Cambiar contraseña del usuario autenticado</span>
+    </div>
+    <div class="endpoint-body">
+      <p><span class="tag tag-auth">Requiere token</span></p>
+      <div class="json-block">{
+  <span class="json-key">"passwordActual"</span>: <span class="json-str">"MiClave123!"</span>,   <span style="color:#666">// Contraseña actual</span>
+  <span class="json-key">"nuevaPassword"</span>:  <span class="json-str">"NuevaClave456!"</span>  <span style="color:#666">// Mín. 8 caracteres</span>
+}</div>
+      <p style="margin-top:6px">Respuesta: <strong>204 No Content</strong></p>
+    </div>
+  </div>
 </div>
 
 <!-- ═══════════════════════════════════════════════════ 4. CATÁLOGOS -->
@@ -414,6 +509,52 @@ testRunner.testCase.testSuite.project.setPropertyValue(
     <div class="endpoint-header"><span class="method DELETE">DELETE</span><span class="endpoint-path">/personas/{id}</span><span class="endpoint-desc">Soft delete de persona</span></div>
     <div class="endpoint-body"><p><span class="tag tag-admin">ADMIN</span> &nbsp; Respuesta: <strong>204 No Content</strong></p></div>
   </div>
+
+  <!-- ACTUALIZAR PERFIL PROPIO -->
+  <div class="endpoint">
+    <div class="endpoint-header">
+      <span class="method PUT">PUT</span>
+      <span class="endpoint-path">/personas/me</span>
+      <span class="endpoint-desc">Actualizar perfil del usuario autenticado</span>
+    </div>
+    <div class="endpoint-body">
+      <p><span class="tag tag-auth">Autenticado</span> &nbsp; Mismo body que <code>POST /personas</code></p>
+      <p style="margin-top:6px">El sistema identifica al usuario por el token JWT. Devuelve el <code>PersonaResponse</code> actualizado.</p>
+    </div>
+  </div>
+
+  <!-- SUBIR FOTO DE PERFIL -->
+  <div class="endpoint">
+    <div class="endpoint-header">
+      <span class="method POST">POST</span>
+      <span class="endpoint-path">/personas/me/foto</span>
+      <span class="endpoint-desc">Subir foto de perfil del usuario autenticado</span>
+    </div>
+    <div class="endpoint-body">
+      <p><span class="tag tag-auth">Autenticado</span></p>
+      <table style="margin-top:10px">
+        <tr><th>Parámetro</th><th>Tipo</th><th>Descripción</th></tr>
+        <tr><td>foto</td><td>MultipartFile</td><td>Imagen JPG, JPEG o PNG. El usuario debe tener CURP registrado.</td></tr>
+      </table>
+      <div class="note" style="margin-top:8px">Content-Type: <code>multipart/form-data</code>. En SoapUI: <em>Request &gt; Attachments</em> o campo <em>foto</em> de tipo File.</div>
+      <p style="margin-top:6px"><strong>Respuesta 200:</strong></p>
+      <div class="json-block">{ <span class="json-key">"url"</span>: <span class="json-str">"/profile_pictures/CURP1234567890.jpg"</span> }</div>
+    </div>
+  </div>
+
+  <!-- OBTENER URL FOTO -->
+  <div class="endpoint">
+    <div class="endpoint-header">
+      <span class="method GET">GET</span>
+      <span class="endpoint-path">/personas/me/foto</span>
+      <span class="endpoint-desc">Obtener URL de la foto de perfil del usuario autenticado</span>
+    </div>
+    <div class="endpoint-body">
+      <p><span class="tag tag-auth">Autenticado</span> &nbsp; Sin body · Sin parámetros</p>
+      <p style="margin-top:6px"><strong>Respuesta 200:</strong></p>
+      <div class="json-block">{ <span class="json-key">"url"</span>: <span class="json-str">"/profile_pictures/CURP1234567890.jpg"</span> }  <span style="color:#666">// Vacío si no tiene foto</span></div>
+    </div>
+  </div>
 </div>
 
 <!-- ═══════════════════════════════════════════════════ 7. CONTRATOS -->
@@ -440,6 +581,14 @@ testRunner.testCase.testSuite.project.setPropertyValue(
   <div class="endpoint">
     <div class="endpoint-header"><span class="method GET">GET</span><span class="endpoint-path">/contratos/persona/{personaId}</span><span class="endpoint-desc">Contratos de una persona</span></div>
     <div class="endpoint-body"><p><span class="tag tag-auth">Autenticado</span></p></div>
+  </div>
+
+  <div class="endpoint">
+    <div class="endpoint-header"><span class="method GET">GET</span><span class="endpoint-path">/contratos/{id}/beneficiarios</span><span class="endpoint-desc">Listar beneficiarios de un contrato</span></div>
+    <div class="endpoint-body">
+      <p><span class="tag tag-auth">Autenticado</span> &nbsp; Parámetro de ruta: <code>id</code> (Long)</p>
+      <p style="margin-top:6px">Devuelve la lista de <code>BeneficiarioResponse</code> asociados al contrato.</p>
+    </div>
   </div>
 
   <div class="endpoint">
@@ -563,11 +712,107 @@ testRunner.testCase.testSuite.project.setPropertyValue(
       <p><span class="tag tag-auth">Autenticado</span> &nbsp; Sin body · Respuesta: <strong>204 No Content</strong></p>
     </div>
   </div>
+
+  <div class="endpoint">
+    <div class="endpoint-header"><span class="method PATCH">PATCH</span><span class="endpoint-path">/notificaciones/{id}/leer</span><span class="endpoint-desc">Marcar una notificación específica como leída</span></div>
+    <div class="endpoint-body">
+      <p><span class="tag tag-auth">Autenticado</span> &nbsp; Parámetro de ruta: <code>id</code> (Long) · Sin body · Respuesta: <strong>204 No Content</strong></p>
+    </div>
+  </div>
 </div>
 
-<!-- ═══════════════════════════════════════════════════ 11. FLUJO -->
+<!-- ═══════════════════════════════════════════════════ 11. USUARIOS -->
 <div class="section" style="page-break-before:always">
-  <div class="section-title">11. Flujo de prueba recomendado en SoapUI</div>
+  <div class="section-title">11. Módulo: Usuarios</div>
+  <div class="note">Gestión de cuentas de acceso al sistema. El alta de usuarios se realiza mediante <code>POST /auth/registro</code>.</div>
+
+  <div class="endpoint">
+    <div class="endpoint-header">
+      <span class="method GET">GET</span>
+      <span class="endpoint-path">/usuarios</span>
+      <span class="endpoint-desc">Listar usuarios con paginación y búsqueda</span>
+    </div>
+    <div class="endpoint-body">
+      <p><span class="tag tag-admin">ADMIN</span> <span class="tag tag-agente">AGENTE</span></p>
+      <table style="margin-top:10px">
+        <tr><th>Parámetro Query</th><th>Tipo</th><th>Requerido</th><th>Descripción</th></tr>
+        <tr><td>q</td><td>String</td><td>No</td><td>Búsqueda por username, nombre o correo</td></tr>
+        <tr><td>page</td><td>Integer</td><td>No</td><td>Número de página (default: 0)</td></tr>
+        <tr><td>size</td><td>Integer</td><td>No</td><td>Registros por página (default: 20)</td></tr>
+      </table>
+      <p style="margin-top:8px"><strong>Respuesta 200 (objeto paginado):</strong></p>
+      <div class="json-block">{
+  <span class="json-key">"content"</span>: [
+    {
+      <span class="json-key">"id"</span>:             <span class="json-num">1</span>,
+      <span class="json-key">"username"</span>:      <span class="json-str">"admin"</span>,
+      <span class="json-key">"nombreCompleto"</span>:<span class="json-str">"Administrador Sistema"</span>,
+      <span class="json-key">"correo"</span>:        <span class="json-str">"admin@shsm.com"</span>,
+      <span class="json-key">"rol"</span>:           <span class="json-str">"ADMIN"</span>,
+      <span class="json-key">"activo"</span>:        <span class="json-bool">true</span>,
+      <span class="json-key">"createdAt"</span>:     <span class="json-str">"2026-01-01T00:00:00-06:00"</span>
+    }
+  ],
+  <span class="json-key">"totalElements"</span>: <span class="json-num">1</span>,
+  <span class="json-key">"totalPages"</span>:    <span class="json-num">1</span>
+}</div>
+    </div>
+  </div>
+
+  <div class="endpoint">
+    <div class="endpoint-header">
+      <span class="method DELETE">DELETE</span>
+      <span class="endpoint-path">/usuarios/{id}/baja</span>
+      <span class="endpoint-desc">Dar de baja (desactivar) un usuario</span>
+    </div>
+    <div class="endpoint-body">
+      <p><span class="tag tag-admin">ADMIN</span> <span class="tag tag-agente">AGENTE</span> &nbsp; Parámetro de ruta: <code>id</code> (Long) · Sin body</p>
+      <p style="margin-top:6px">Realiza un soft-delete del usuario. Respuesta: <strong>204 No Content</strong></p>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════ 12. OCR -->
+<div class="section" style="page-break-before:always">
+  <div class="section-title">12. Módulo: OCR – Extracción de Datos de Documentos</div>
+  <div class="note"><strong>Integración con Google Gemini.</strong> Envía imágenes de documentos de identidad (INE frente, INE reverso, Acta de nacimiento / documento fiscal) y recibe los datos extraídos automáticamente.</div>
+
+  <div class="endpoint">
+    <div class="endpoint-header">
+      <span class="method POST">POST</span>
+      <span class="endpoint-path">/ocr/ine</span>
+      <span class="endpoint-desc">Extraer datos de documentos de identidad mediante OCR con Gemini</span>
+    </div>
+    <div class="endpoint-body">
+      <p><span class="tag tag-auth">Autenticado</span></p>
+      <div class="note">Content-Type: <code>multipart/form-data</code>. Se requiere al menos uno de los tres campos.</div>
+      <table style="margin-top:10px">
+        <tr><th>Campo (form-data)</th><th>Tipo</th><th>Requerido</th><th>Descripción</th></tr>
+        <tr><td>ineFrente</td><td>MultipartFile</td><td>Opcional*</td><td>Imagen del frente de la INE</td></tr>
+        <tr><td>ineReverso</td><td>MultipartFile</td><td>Opcional*</td><td>Imagen del reverso de la INE</td></tr>
+        <tr><td>acta</td><td>MultipartFile</td><td>Opcional*</td><td>Acta de nacimiento o documento fiscal</td></tr>
+      </table>
+      <p style="margin-top:4px; font-size:10px">* Se requiere al menos uno de los tres campos.</p>
+      <p style="margin-top:10px"><strong>Respuesta 200 – datos extraídos:</strong></p>
+      <div class="json-block">{
+  <span class="json-key">"nombre"</span>:          <span class="json-str">"JUAN"</span>,
+  <span class="json-key">"apPaterno"</span>:       <span class="json-str">"GARCIA"</span>,
+  <span class="json-key">"apMaterno"</span>:       <span class="json-str">"LOPEZ"</span>,
+  <span class="json-key">"curp"</span>:            <span class="json-str">"GALJ850315HDFRZN04"</span>,
+  <span class="json-key">"fechaNacimiento"</span>: <span class="json-str">"1985-03-15"</span>,
+  <span class="json-key">"sexo"</span>:            <span class="json-str">"M"</span>,
+  <span class="json-key">"direccion"</span>:       <span class="json-str">"AV. PRINCIPAL 10, CENTRO"</span>
+}</div>
+      <p style="margin-top:8px"><strong>Respuesta 400</strong> – sin imágenes:</p>
+      <div class="json-block">{ <span class="json-key">"error"</span>: <span class="json-str">"Se requiere al menos una imagen."</span> }</div>
+      <div class="warn" style="margin-top:8px">En SoapUI: crea el request con método POST, activa <em>Attachments</em> o usa el <em>Form Builder</em> para adjuntar archivos en los campos <code>ineFrente</code>, <code>ineReverso</code> y/o <code>acta</code>.</div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════ 13. FLUJO -->
+<div class="section" style="page-break-before:always">
+  <div class="section-title">13. Flujo de prueba recomendado en SoapUI</div>
 
   <div class="step"><div class="step-num">1</div><div class="step-content"><strong>POST /auth/login</strong> – Obtén el token. Guárdalo en la propiedad del proyecto con el script Groovy.</div></div>
   <div class="step"><div class="step-num">2</div><div class="step-content"><strong>GET /catalogos/metodos-pago</strong> – Anota el <code>id</code> del método "EFECTIVO" (o el que prefieras).</div></div>
@@ -583,7 +828,7 @@ testRunner.testCase.testSuite.project.setPropertyValue(
 
 <!-- ═══════════════════════════════════════════════════ 12. INSERT USUARIO ADMIN -->
 <div class="section" style="page-break-before:always">
-  <div class="section-title">12. Inserción del usuario administrador</div>
+  <div class="section-title">14. Inserción del usuario administrador</div>
 
   <div class="warn">
     ⚠ La contraseña en la base de datos se almacena como hash <strong>BCrypt</strong>.
@@ -669,8 +914,8 @@ Content-Type: application/json
 
 <!-- ═══════════════════════════════════════════════════ PIE -->
 <div style="background:#1e3a5f; color:#fff; text-align:center; padding:20px; font-size:11px; margin-top:40px;">
-  Sociedad Humanista Santa Martha S.A. de C.V. &nbsp;·&nbsp; API REST v1.0.0
-  &nbsp;·&nbsp; Spring Boot 3.4.0 &nbsp;·&nbsp; Documento generado: Junio 2026
+  Sociedad Humanista Santa Martha S.A. de C.V. &nbsp;·&nbsp; API REST v1.1.0
+  &nbsp;·&nbsp; Spring Boot 3.4.0 &nbsp;·&nbsp; Documento generado: Julio 2026
 </div>
 
 </body>

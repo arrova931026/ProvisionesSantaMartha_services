@@ -2,7 +2,7 @@
   "info": {
     "_postman_id": "shsm-api-v1-collection",
     "name": "SHSM API – Sociedad Humanista Santa Martha",
-    "description": "API REST v1.0.0 · Spring Boot 3.4.0 · Java 21 · PostgreSQL\n\nBase URL: http://localhost:8080/api\n\n**Instrucciones:**\n1. Ejecuta **POST /auth/login**. El script de test guarda el token automáticamente en la variable de colección `access_token`.\n2. Todos los demás endpoints protegidos usan `{{access_token}}` en el header Authorization.",
+    "description": "API REST v1.1.0 · Spring Boot 3.4.0 · Java 21 · PostgreSQL\n\nBase URL: http://localhost:8080/api\n\n**Instrucciones:**\n1. Ejecuta **POST /auth/login**. El script de test guarda el token automáticamente en la variable de colección `access_token`.\n2. Todos los demás endpoints protegidos usan `{{access_token}}` en el header Authorization.\n3. Las carpetas siguen el mismo orden que la documentación HTML v1.1.0.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "variable": [
@@ -54,6 +54,21 @@
     {
       "key": "metodo_id",
       "value": "4",
+      "type": "string"
+    },
+    {
+      "key": "usuario_id",
+      "value": "1",
+      "type": "string"
+    },
+    {
+      "key": "notificacion_id",
+      "value": "1",
+      "type": "string"
+    },
+    {
+      "key": "reset_token",
+      "value": "",
       "type": "string"
     }
   ],
@@ -211,6 +226,118 @@
               ]
             },
             "description": "Invalida el `refreshToken`. **Requiere token.** Respuesta: `204 No Content`."
+          }
+        },
+        {
+          "name": "Login con Google",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const json = pm.response.json();",
+                  "    pm.collectionVariables.set('access_token',  json.accessToken);",
+                  "    pm.collectionVariables.set('refresh_token', json.refreshToken);",
+                  "    pm.test('Google login exitoso – token capturado', () => {",
+                  "        pm.expect(json.accessToken).to.be.a('string').and.not.empty;",
+                  "    });",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"idToken\": \"eyJhbGciOiJSUzI1NiJ9...\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{base_url}}/auth/google",
+              "host": ["{{base_url}}"],
+              "path": ["auth", "google"]
+            },
+            "description": "**Público.** Autentica al usuario con un `idToken` obtenido de Google Sign-In. Devuelve el mismo `LoginResponse` que `/auth/login`."
+          }
+        },
+        {
+          "name": "Registro de Cliente",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"María\",\n  \"apPaterno\": \"Hernández\",\n  \"apMaterno\": \"Ruiz\",\n  \"fechaNacimiento\": \"1990-07-20\",\n  \"sexo\": \"F\",\n  \"curp\": \"HERR900720MDFRZR01\",\n  \"telefono\": \"5598765432\",\n  \"correo\": \"maria@example.com\",\n  \"username\": \"maria.hernandez\",\n  \"password\": \"MiClave123!\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{base_url}}/auth/registro",
+              "host": ["{{base_url}}"],
+              "path": ["auth", "registro"]
+            },
+            "description": "**Público.** Auto-registro de nuevo cliente con rol CLIENTE. Campos requeridos: `nombre`, `apPaterno`, `fechaNacimiento`, `sexo`, `curp`, `telefono`, `correo`, `username`, `password`. Respuesta: `201 Created`."
+          }
+        },
+        {
+          "name": "Olvidé mi Contraseña",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"correo\": \"maria@example.com\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{base_url}}/auth/forgot-password",
+              "host": ["{{base_url}}"],
+              "path": ["auth", "forgot-password"]
+            },
+            "description": "**Público.** Solicita un correo con enlace de restablecimiento. El sistema envía el token al correo registrado. Respuesta: `204 No Content`."
+          }
+        },
+        {
+          "name": "Restablecer Contraseña",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"token\": \"{{reset_token}}\",\n  \"nuevaPassword\": \"NuevaClave456!\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{base_url}}/auth/reset-password",
+              "host": ["{{base_url}}"],
+              "path": ["auth", "reset-password"]
+            },
+            "description": "**Público.** Restablece la contraseña usando el token recibido por correo. `nuevaPassword` debe tener mínimo 8 caracteres. Respuesta: `204 No Content`."
+          }
+        },
+        {
+          "name": "Cambiar Contraseña",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"passwordActual\": \"Admin123!\",\n  \"nuevaPassword\": \"NuevaClave456!\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{base_url}}/auth/change-password",
+              "host": ["{{base_url}}"],
+              "path": ["auth", "change-password"]
+            },
+            "description": "**Requiere token.** Cambia la contraseña del usuario autenticado. `nuevaPassword` debe tener mínimo 8 caracteres. Respuesta: `204 No Content`."
           }
         }
       ]
@@ -466,6 +593,24 @@
             },
             "description": "**Requiere rol ADMIN.** Soft delete. Respuesta: `204 No Content`."
           }
+        },
+        {
+          "name": "PATCH Activar Plan",
+          "request": {
+            "method": "PATCH",
+            "url": {
+              "raw": "{{base_url}}/planes/1/activar",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "planes",
+                "1",
+                "activar"
+              ]
+            },
+            "description": "**Requiere rol ADMIN.** Reactiva un plan previamente desactivado. Sin body. Respuesta: `204 No Content`."
+          }
         }
       ]
     },
@@ -607,6 +752,58 @@
             },
             "description": "**ADMIN.** Soft delete. Respuesta: `204 No Content`."
           }
+        },
+        {
+          "name": "PUT Actualizar Mi Perfil",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Juan Editado\",\n  \"apPaterno\": \"García\",\n  \"apMaterno\": \"López\",\n  \"telefono\": \"5512345679\",\n  \"correo\": \"juan.editado@example.com\",\n  \"pais\": \"México\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{base_url}}/personas/me",
+              "host": ["{{base_url}}"],
+              "path": ["personas", "me"]
+            },
+            "description": "**Autenticado.** Actualiza el perfil de la persona asociada al usuario autenticado. Mismo body que `POST /personas`."
+          }
+        },
+        {
+          "name": "POST Subir Foto de Perfil",
+          "request": {
+            "method": "POST",
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "foto",
+                  "type": "file",
+                  "description": "Imagen JPG, JPEG o PNG. El usuario debe tener CURP registrado."
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{base_url}}/personas/me/foto",
+              "host": ["{{base_url}}"],
+              "path": ["personas", "me", "foto"]
+            },
+            "description": "**Autenticado.** `Content-Type: multipart/form-data`. Campo: `foto` (File – JPG/JPEG/PNG). El usuario debe tener CURP registrado. Respuesta 200: `{ \"url\": \"/profile_pictures/CURP.jpg\" }`."
+          }
+        },
+        {
+          "name": "GET Foto de Perfil",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/personas/me/foto",
+              "host": ["{{base_url}}"],
+              "path": ["personas", "me", "foto"]
+            },
+            "description": "**Autenticado.** Devuelve la URL de la foto de perfil del usuario autenticado. Respuesta: `{ \"url\": \"/profile_pictures/CURP.jpg\" }`. Si no tiene foto, `url` es cadena vacía."
+          }
         }
       ]
     },
@@ -679,6 +876,18 @@
               ]
             },
             "description": "**Autenticado.** Reemplaza `1` por el ID de la persona titular."
+          }
+        },
+        {
+          "name": "GET Beneficiarios del Contrato",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/contratos/{{contrato_id}}/beneficiarios",
+              "host": ["{{base_url}}"],
+              "path": ["contratos", "{{contrato_id}}", "beneficiarios"]
+            },
+            "description": "**Autenticado.** Lista los beneficiarios registrados en el contrato. Reemplaza `{{contrato_id}}` por el ID del contrato."
           }
         },
         {
@@ -983,11 +1192,84 @@
             },
             "description": "**Autenticado.** Sin body. Respuesta: `204 No Content`."
           }
+        },
+        {
+          "name": "PATCH Marcar Notificación Leída",
+          "request": {
+            "method": "PATCH",
+            "url": {
+              "raw": "{{base_url}}/notificaciones/{{notificacion_id}}/leer",
+              "host": ["{{base_url}}"],
+              "path": ["notificaciones", "{{notificacion_id}}", "leer"]
+            },
+            "description": "**Autenticado.** Marca una notificación específica como leída. Reemplaza `{{notificacion_id}}` por el ID de la notificación. Respuesta: `204 No Content`."
+          }
         }
       ]
     },
     {
-      "name": "09 – Flujo Completo (secuencia recomendada)",
+      "name": "09 – Usuarios",
+      "description": "Gestión de cuentas de acceso. El alta se realiza por `POST /auth/registro`.",
+      "item": [
+        {
+          "name": "GET Usuarios (lista paginada)",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/usuarios?page=0&size=20",
+              "host": ["{{base_url}}"],
+              "path": ["usuarios"],
+              "query": [
+                { "key": "q",    "value": "",   "description": "Búsqueda por username, nombre o correo", "disabled": true },
+                { "key": "page", "value": "0",  "description": "Número de página" },
+                { "key": "size", "value": "20", "description": "Registros por página" }
+              ]
+            },
+            "description": "**ADMIN / AGENTE.** Lista paginada de usuarios. Campos de respuesta: `id`, `username`, `nombreCompleto`, `correo`, `rol`, `activo`, `createdAt`."
+          }
+        },
+        {
+          "name": "DELETE Dar de Baja Usuario",
+          "request": {
+            "method": "DELETE",
+            "url": {
+              "raw": "{{base_url}}/usuarios/{{usuario_id}}/baja",
+              "host": ["{{base_url}}"],
+              "path": ["usuarios", "{{usuario_id}}", "baja"]
+            },
+            "description": "**ADMIN / AGENTE.** Desactiva (soft-delete) al usuario. Reemplaza `{{usuario_id}}` por el ID. Respuesta: `204 No Content`."
+          }
+        }
+      ]
+    },
+    {
+      "name": "10 – OCR – Extracción de Documentos",
+      "description": "Extracción de datos de identidad mediante Google Gemini. Envía imágenes de INE y/o documentos fiscales.",
+      "item": [
+        {
+          "name": "POST Procesar Documentos OCR",
+          "request": {
+            "method": "POST",
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                { "key": "ineFrente",  "type": "file", "description": "Imagen frente de la INE (JPG/PNG)" },
+                { "key": "ineReverso", "type": "file", "description": "Imagen reverso de la INE (JPG/PNG)" },
+                { "key": "acta",       "type": "file", "description": "Acta de nacimiento o documento fiscal (JPG/PNG)" }
+              ]
+            },
+            "url": {
+              "raw": "{{base_url}}/ocr/ine",
+              "host": ["{{base_url}}"],
+              "path": ["ocr", "ine"]
+            },
+            "description": "**Autenticado.** `Content-Type: multipart/form-data`. Campos opcionales (al menos uno requerido): `ineFrente`, `ineReverso`, `acta`.\n\nRespuesta 200 – datos extraídos:\n```json\n{\n  \"nombre\": \"JUAN\",\n  \"apPaterno\": \"GARCIA\",\n  \"apMaterno\": \"LOPEZ\",\n  \"curp\": \"GALJ850315HDFRZN04\",\n  \"fechaNacimiento\": \"1985-03-15\",\n  \"sexo\": \"M\",\n  \"direccion\": \"AV. PRINCIPAL 10, CENTRO\"\n}\n```\nRespuesta 400 si no se envía ninguna imagen."
+          }
+        }
+      ]
+    },
+    {
+      "name": "11 – Flujo Completo (secuencia recomendada)",
       "description": "Ejecuta estos requests en orden. Cada uno tiene un script que extrae el ID de la respuesta y lo guarda en una variable de colección para usarlo en el siguiente paso.",
       "item": [
         {

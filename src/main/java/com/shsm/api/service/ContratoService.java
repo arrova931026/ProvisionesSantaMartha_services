@@ -1,5 +1,6 @@
 package com.shsm.api.service;
 
+import com.shsm.api.dto.contrato.BeneficiarioRequest;
 import com.shsm.api.dto.contrato.BeneficiarioResponse;
 import com.shsm.api.dto.contrato.ContratoRequest;
 import com.shsm.api.dto.contrato.ContratoResponse;
@@ -14,6 +15,9 @@ public interface ContratoService {
     List<ContratoResponse> listarPorPersona(Long personaId);
     List<BeneficiarioResponse> listarBeneficiariosDeContrato(Long contratoId);
     ContratoResponse crear(ContratoRequest request);
+    BeneficiarioResponse agregarBeneficiario(Long contratoId, BeneficiarioRequest request);
     ContratoResponse actualizarEstado(Long id, String estadoClave);
     void cancelar(Long id);
+    /** Valida que la persona cumpla los requisitos de edad para contratar. */
+    void validarElegibilidadEdad(Long personaId);
 }

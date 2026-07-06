@@ -19,7 +19,7 @@ public class Documento extends BaseEntity {
     @JoinColumn(name = "persona_id")
     private Persona persona;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "tipo_id", nullable = false)
     private TipoDocumento tipo;
 

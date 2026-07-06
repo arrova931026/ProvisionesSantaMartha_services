@@ -14,10 +14,17 @@ public class WebConfig implements WebMvcConfigurer {
     @Value("${app.profile-pictures-dir:profile_pictures}")
     private String profilePicturesDir;
 
+    @Value("${app.docs-dir:docs}")
+    private String docsDir;
+
     @Override
     public void addResourceHandlers(ResourceHandlerRegistry registry) {
         Path uploadPath = Paths.get(profilePicturesDir).toAbsolutePath();
         registry.addResourceHandler("/profile_pictures/**")
-                .addResourceLocations("file:" + uploadPath.toString() + "/");
+                .addResourceLocations("file:" + uploadPath + "/");
+
+        Path docsPath = Paths.get(docsDir).toAbsolutePath();
+        registry.addResourceHandler("/docs/**")
+                .addResourceLocations("file:" + docsPath + "/");
     }
 }

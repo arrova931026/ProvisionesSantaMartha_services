@@ -55,4 +55,14 @@ public class PlanFunerarioController {
         planRepository.save(plan);
         return ResponseEntity.noContent().build();
     }
+
+    @PatchMapping("/{id}/activar")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<Void> activar(@PathVariable Long id) {
+        PlanFunerario plan = planRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("PlanFunerario", id));
+        plan.setActivo(true);
+        planRepository.save(plan);
+        return ResponseEntity.noContent().build();
+    }
 }

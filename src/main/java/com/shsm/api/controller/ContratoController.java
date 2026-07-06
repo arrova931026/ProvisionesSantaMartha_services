@@ -1,20 +1,25 @@
 package com.shsm.api.controller;
 
+import com.shsm.api.dto.contrato.BeneficiarioRequest;
 import com.shsm.api.dto.contrato.BeneficiarioResponse;
 import com.shsm.api.dto.contrato.ContratoRequest;
 import com.shsm.api.dto.contrato.ContratoResponse;
 import com.shsm.api.service.ContratoService;
+import com.shsm.api.service.PdfContratoService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/contratos")
@@ -22,6 +27,7 @@ import java.util.List;
 public class ContratoController {
 
     private final ContratoService contratoService;
+    private final PdfContratoService pdfContratoService;
 
     @GetMapping
     @PreAuthorize("hasAnyRole('ADMIN', 'AGENTE')")
@@ -46,8 +52,16 @@ public class ContratoController {
         return ResponseEntity.ok(contratoService.listarBeneficiariosDeContrato(id));
     }
 
+    @PostMapping("/{id}/beneficiarios")
+    public ResponseEntity<BeneficiarioResponse> agregarBeneficiario(
+            @PathVariable Long id,
+            @Valid @RequestBody BeneficiarioRequest request) {
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(contratoService.agregarBeneficiario(id, request));
+    }
+
     @PostMapping
-    @PreAuthorize("hasAnyRole('ADMIN', 'AGENTE')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'AGENTE', 'CLIENTE')")
     public ResponseEntity<ContratoResponse> crear(@Valid @RequestBody ContratoRequest request) {
         return ResponseEntity.status(HttpStatus.CREATED).body(contratoService.crear(request));
     }
@@ -65,5 +79,31 @@ public class ContratoController {
     public ResponseEntity<Void> cancelar(@PathVariable Long id) {
         contratoService.cancelar(id);
         return ResponseEntity.noContent().build();
+    }
+
+    /** Descarga el PDF del contrato. */
+    @GetMapping("/{id}/pdf")
+    public ResponseEntity<byte[]> descargarPdf(@PathVariable Long id) {
+        byte[] pdf = pdfContratoService.generarPdf(id);
+        ContratoResponse c = contratoService.obtener(id);
+        return ResponseEntity.ok()
+                .contentType(MediaType.APPLICATION_PDF)
+                .header(HttpHeaders.CONTENT_DISPOSITION,
+                        "attachment; filename=\"Contrato_" + c.numeroContrato() + ".pdf\"")
+                .body(pdf);
+    }
+
+    /** Envía el PDF del contrato por correo al titular. */
+    @PostMapping("/{id}/enviar-pdf")
+    public ResponseEntity<Map<String, String>> enviarPdf(@PathVariable Long id) {
+        pdfContratoService.enviarPorCorreo(id);
+        return ResponseEntity.ok(Map.of("mensaje", "PDF enviado al correo del titular."));
+    }
+
+    /** Verifica la elegibilidad de edad de una persona para contratar. */
+    @GetMapping("/elegibilidad/{personaId}")
+    public ResponseEntity<Map<String, String>> verificarElegibilidad(@PathVariable Long personaId) {
+        contratoService.validarElegibilidadEdad(personaId);
+        return ResponseEntity.ok(Map.of("elegible", "true"));
     }
 }

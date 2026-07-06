@@ -72,6 +72,7 @@ INSERT INTO tipos_documento (clave, nombre) VALUES
     ('ACTA_NAC',        'Acta de nacimiento'),
     ('CONTRATO_PDF',    'Contrato firmado (PDF)'),
     ('COMPROBANTE_DOM', 'Comprobante de domicilio'),
+    ('RFC',             'RFC / Constancia de situación fiscal'),
     ('FOTO_PERFIL',     'Fotografía de perfil'),
     ('ACTA_DEF',        'Acta de defunción'),
     ('OTRO',            'Otro documento')

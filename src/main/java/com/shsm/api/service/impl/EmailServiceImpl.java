@@ -3,6 +3,7 @@ package com.shsm.api.service.impl;
 import com.shsm.api.service.EmailService;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
+import jakarta.mail.util.ByteArrayDataSource;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -104,5 +105,60 @@ public class EmailServiceImpl implements EmailService {
                 </body>
                 </html>
                 """.formatted(nombre, enlace, enlace, enlace);
+    }
+
+    @Override
+    public void enviarContrato(String destinatario, String nombreCompleto, String numeroContrato, byte[] pdfBytes) {
+        log.info("Enviando contrato {} al correo: {}", numeroContrato, destinatario);
+        try {
+            MimeMessage message = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+
+            helper.setFrom(from, "Sociedad Humanista Santa Martha");
+            helper.setTo(destinatario);
+            helper.setSubject("Su contrato funerario – Nº " + numeroContrato);
+            helper.setText(construirHtmlContrato(nombreCompleto, numeroContrato), true);
+            helper.addAttachment(
+                    "Contrato_" + numeroContrato + ".pdf",
+                    new ByteArrayDataSource(pdfBytes, "application/pdf")
+            );
+
+            mailSender.send(message);
+            log.info("Contrato {} enviado exitosamente a: {}", numeroContrato, destinatario);
+        } catch (MessagingException | java.io.UnsupportedEncodingException e) {
+            log.error("ERROR al enviar contrato {} a {}: {}", numeroContrato, destinatario, e.getMessage(), e);
+        }
+    }
+
+    private String construirHtmlContrato(String nombre, String numeroContrato) {
+        return """
+                <!DOCTYPE html><html lang="es"><head><meta charset="UTF-8"></head>
+                <body style="font-family:Arial,sans-serif;background:#f4f6f8;margin:0;padding:0;">
+                  <table width="100%%" cellpadding="0" cellspacing="0" style="background:#f4f6f8;padding:40px 0;">
+                    <tr><td align="center">
+                      <table width="520" cellpadding="0" cellspacing="0"
+                             style="background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,0.08);">
+                        <tr><td style="background:#1e6fa3;padding:28px 40px;text-align:center;">
+                          <h1 style="color:#fff;font-size:1.3rem;margin:0;font-weight:700;">Sociedad Humanista Santa Martha</h1>
+                        </td></tr>
+                        <tr><td style="padding:36px 40px;">
+                          <p style="font-size:1rem;color:#2c3e50;margin-top:0;">Estimado(a) <strong>%s</strong>,</p>
+                          <p style="font-size:0.95rem;color:#555;line-height:1.6;">
+                            Nos complace informarle que su contrato funerario ha sido registrado exitosamente.<br>
+                            Adjunto a este correo encontrará su contrato en formato PDF (Nº <strong>%s</strong>).
+                          </p>
+                          <p style="font-size:0.9rem;color:#555;line-height:1.6;">
+                            Guarde este documento en un lugar seguro y compártalo con sus beneficiarios.<br>
+                            Si tiene alguna duda, contáctenos a través de su portal de clientes.
+                          </p>
+                        </td></tr>
+                        <tr><td style="background:#f8f9fa;padding:16px 40px;text-align:center;">
+                          <p style="font-size:0.75rem;color:#aaa;margin:0;">© 2026 Sociedad Humanista Santa Martha S.A. de C.V.</p>
+                        </td></tr>
+                      </table>
+                    </td></tr>
+                  </table>
+                </body></html>
+                """.formatted(nombre, numeroContrato);
     }
 }

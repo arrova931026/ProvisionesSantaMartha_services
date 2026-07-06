@@ -1,0 +1,131 @@
+{
+  "documento": "ContratoMutualista",
+  "descripcion": "Plantilla de contrato mutualista/familiar con campos sustituibles para Spring Boot.",
+  "version": "1.0",
+  "formato": {
+    "tamanio_pagina": "Carta",
+    "una_hoja": true,
+    "fuente_sugerida": "Arial Narrow",
+    "nota_firmas": "Las líneas debajo de los nombres son para firma autógrafa y no deben sustituirse por datos dinámicos."
+  },
+  "placeholders": {
+    "clienteTitularContrato": "{{clienteTitularContrato}}",
+    "planPrevisionFuneraria": "{{planPrevisionFuneraria}}",
+    "costoServicio": "{{costoServicio}}",
+    "engancheServicioContratado": "{{engancheServicioContratado}}",
+    "mensualidad24": "{{mensualidad24}}",
+    "valorContrato": "{{valorContrato}}",
+    "enganche10": "{{enganche10}}",
+    "mensualidad": "{{mensualidad}}",
+    "diaFirma": "{{diaFirma}}",
+    "mesFirma": "{{mesFirma}}",
+    "anioFirma": "{{anioFirma}}"
+  },
+  "empresa": {
+    "nombre": "SOCIEDAD HUMANISTA SANTA MARTHA S.A. DE C.V.",
+    "representante": "LICENCIADO ALBERTO ESTEBAN VARGAS RICO",
+    "caracter": "ADMINISTRADOR ÚNICO",
+    "domicilioFiscal": "CIPRÉS 905 COLONIA CHAPULTEPEC, EN LA CIUDAD DE POZA RICA DE HIDALGO, VERACRUZ",
+    "giro": "SERVICIOS FUNERARIOS DE INHUMACIÓN Y CREMACIÓN"
+  },
+  "contenido": {
+    "encabezado": {
+      "logo": "Logo Sociedad Humanista Santa Martha S.A. de C.V.",
+      "titulo": "CONTRATO FAMILIAR"
+    },
+    "presentacion": "CONTRATO FAMILIAR QUE SUSCRIBEN POR UNA PARTE SOCIEDAD HUMANISTA SANTA MARTHA S.A. DE C.V., QUIEN EN LO SUCESIVO SE LE DENOMINARÁ COMO \"LA EMPRESA\", REPRESENTADA EN ESTE ACTO POR EL LICENCIADO ALBERTO ESTEBAN VARGAS RICO, EN SU CARÁCTER DE ADMINISTRADOR ÚNICO, Y POR LA OTRA PARTE EL (LA) C. {{clienteTitularContrato}}, A QUIEN EN LO SUCESIVO SE LE DENOMINARÁ COMO \"CLIENTE\", A QUIENES CONJUNTAMENTE SE LES DENOMINARÁ COMO \"LAS PARTES\", EN TENOR DE LAS SIGUIENTES DECLARACIONES Y CLÁUSULAS.",
+    "declaraciones": [
+      {
+        "numero": "I",
+        "titulo": "DECLARA \"LA EMPRESA\" A TRAVÉS DE SU ADMINISTRADOR ÚNICO:",
+        "incisos": [
+          {
+            "numero": "I.I",
+            "texto": "QUE ES UNA EMPRESA LEGALMENTE CONSTITUIDA CUYO DOMICILIO FISCAL SE ENCUENTRA EN CIPRÉS 905 COLONIA CHAPULTEPEC, EN LA CIUDAD DE POZA RICA DE HIDALGO, VERACRUZ, DEDICADA A LOS SERVICIOS FUNERARIOS DE INHUMACIÓN Y CREMACIÓN EN LA ZONA DE POZA RICA DE HIDALGO Y ÁREA METROPOLITANA."
+          },
+          {
+            "numero": "I.II",
+            "texto": "QUE LOS SERVICIOS DE INHUMACIÓN MENCIONADOS CONSISTEN EN LA RECOLECCIÓN DEL CADÁVER, EQUIPO PARA INSTALAR CAPILLA ARDIENTE EN EL DOMICILIO QUE SEÑALE EL CLIENTE O SUS DEUDOS, CARROSA PARA EL TRASLADO DENTRO DE LA CIUDAD DE POZA RICA Y ÁREA METROPOLITANA, PERSONAL CAPACITADO PARA LA ATENCIÓN DEL SERVICIO FUNERARIO, ATAÚD METÁLICO DE PRIMERA, NO INCLUYENDO LOTE DE PANTEÓN NI PAGO DE IMPUESTOS, ACTAS Y PERMISOS."
+          },
+          {
+            "numero": "I.III",
+            "texto": "QUE LOS SERVICIOS DE CREMACIÓN MENCIONADOS CONSISTEN EN LA RECOLECCIÓN DEL CADÁVER, EQUIPO PARA INSTALAR CAPILLA ARDIENTE EN EL DOMICILIO, CARROSA PARA EL TRASLADO DENTRO DE LA CIUDAD Y ÁREA METROPOLITANA, PERSONAL CAPACITADO PARA LA ATENCIÓN DEL SERVICIO FUNERARIO, RENTA DE ATAÚD DE MADERA DE PINO BARNIZADO, CREMACIÓN DE CADÁVER, URNA BÁSICA PARA RESTOS ÁRIDOS Y CONSTANCIA DE CREMACIÓN. LOS IMPUESTOS, ACTAS Y PERMISOS SON A CARGO DEL CLIENTE O SUS DEUDOS."
+          }
+        ]
+      },
+      {
+        "numero": "II",
+        "titulo": "DECLARA EL(LA) \"CLIENTE\":",
+        "incisos": [
+          {
+            "numero": "II.I",
+            "texto": "ESTAR DE ACUERDO EN REALIZAR EL PAGO DE SU PLAN DE PREVISIÓN FUNERARIA {{planPrevisionFuneraria}} CON UN COSTO DE ${{costoServicio}}, PAGANDO UN ENGANCHE DEL 10% DEL PRECIO DEL SERVICIO CONTRATADO DE ${{engancheServicioContratado}} Y LAS 24 MENSUALIDADES DE ${{mensualidad24}}."
+          }
+        ]
+      },
+      {
+        "numero": "III",
+        "titulo": "DECLARAN \"LAS PARTES\":",
+        "incisos": [
+          {
+            "numero": "III.I",
+            "texto": "ESTE CONTRATO ES PARA EL TITULAR DEL PRESENTE, PERO TAMBIÉN ES TRANSFERIBLE PARA FAMILIARES O AMIGOS DEL CLIENTE."
+          },
+          {
+            "numero": "III.II",
+            "texto": "QUE AL FALLECIMIENTO DEL CLIENTE, LA EMPRESA SE OBLIGA A BRINDAR EL SERVICIO CONTRATADO YA SEA DE INHUMACIÓN O CREMACIÓN, DANDO POR TERMINADAS LAS RESPONSABILIDADES DE LA EMPRESA."
+          },
+          {
+            "numero": "III",
+            "texto": "QUE NO TIENEN INCONVENIENTE EN LIQUIDAR LOS PORTADORES DEL CONTRATO A LA HORA DE SOLICITAR EL SERVICIO FUNERARIO CONTRATADO EN CASO DE NO ESTAR PAGADO EN SU TOTALIDAD."
+          }
+        ]
+      }
+    ],
+    "clausulas": [
+      {
+        "numero": "PRIMERA",
+        "texto": "LA VIGENCIA DEL PRESENTE CONTRATO ES A PARTIR DEL PAGO DEL ENGANCHE HASTA EL TIEMPO EN QUE SE REQUIERA EL SERVICIO FUNERARIO CONTRATADO."
+      },
+      {
+        "numero": "SEGUNDA",
+        "texto": "\"LA EMPRESA\" SE HARÁ CARGO DE LA GESTIÓN DE TRÁMITES ANTE LAS DEPENDENCIAS CORRESPONDIENTES, QUEDANDO EL PAGO DE IMPUESTOS Y DERECHOS A CARGO DEL \"CLIENTE\"."
+      },
+      {
+        "numero": "TERCERA",
+        "texto": "EL VALOR DE ESTE CONTRATO ES DE LA CANTIDAD DE ${{valorContrato}} ENGANCHE 10% ${{enganche10}} MENSUALIDAD ${{mensualidad}}."
+      },
+      {
+        "numero": "CUARTA",
+        "texto": "LAS PARTES CONVIENEN QUE PARA LA INTERPRETACIÓN Y CUMPLIMIENTO DE ESTE CONTRATO SE SOMETEN A LA COMPETENCIA DE LOS TRIBUNALES CON RESIDENCIA EN EL MUNICIPIO DE POZA RICA DE HIDALGO, VERACRUZ, RENUNCIANDO EXPRESAMENTE A CUALQUIER OTRO FUERO PRESENTE O FUTURO. ENTERADAS LAS PARTES DEL CONTENIDO, ALCANCE Y FUERZA LEGAL DEL PRESENTE CONTRATO Y POR NO CONTENER DOLO, ERROR, MALA FE, NI CLÁUSULA CONTRARIA A DERECHO, LO FIRMAN AL CALCE, SIENDO EL DÍA {{diaFirma}} DEL MES DE {{mesFirma}} DEL AÑO DOS MIL {{anioFirma}}, EN LA CIUDAD DE POZA RICA DE HIDALGO, VERACRUZ."
+      },
+      {
+        "numero": "QUINTA",
+        "texto": "LAS PARTES CONVIENEN EN QUE LA FORMA DE PAGO ES ENGANCHE EN EFECTIVO, LAS MENSUALIDADES POR DEPÓSITO (EN BANCO O TIENDAS DE CONVENIENCIA OXXO, FARMACIA GUADALAJARA, FARMACIA DEL AHORRO, ETC.) O TRANSFERENCIA BANCARIA."
+      },
+      {
+        "numero": "SEXTA",
+        "texto": "LAS PARTES CONVIENEN EN QUE LOS PAGOS VÍA TRANSFERENCIA O DEPÓSITOS SERÁN LOS DÍAS 15 Y 30 DE CADA MES."
+      },
+      {
+        "numero": "SÉPTIMA",
+        "texto": "LAS PARTES ACUERDAN QUE SI SE FALTA A TRES PAGOS MENSUALES SERÁ RESCINDIDO EL CONTRATO SIN DEVOLUCIÓN DE PAGOS REALIZADOS POR EL CLIENTE NI RESPONSABILIDAD PARA LA EMPRESA."
+      }
+    ],
+    "firmas": [
+      {
+        "nombre": "ALBERTO ESTEBAN VARGAS RICO",
+        "rol": "Representante de la empresa",
+        "lineaFirmaAutografa": "_______________________________",
+        "sustituible": false
+      },
+      {
+        "nombre": "{{clienteTitularContrato}}",
+        "rol": "CLIENTE TITULAR DEL CONTRATO",
+        "lineaFirmaAutografa": "____________________________________",
+        "sustituible": true,
+        "nota": "Solo se sustituye el nombre del cliente; la línea inferior permanece vacía para firma autógrafa."
+      }
+    ]
+  }
+}

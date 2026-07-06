@@ -6,6 +6,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.HttpStatusCodeException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -50,15 +51,16 @@ public class GeminiOcrService {
         "Responde SOLO con el JSON, sin código, sin explicaciones ni markdown.";
 
     /**
-     * Deshabilita todos los filtros de seguridad para que Gemini no bloquee
+     * Deshabilita los 4 filtros de seguridad estándar para que Gemini no bloquee
      * documentos de identidad (INE, RFC) por contener datos personales.
+     * NOTA: HARM_CATEGORY_CIVIC_INTEGRITY es experimental y NO se incluye porque
+     * causa 400 INVALID_ARGUMENT en la mayoría de claves de API.
      */
     private static final List<Map<String, String>> SAFETY_SETTINGS = List.of(
         Map.of("category", "HARM_CATEGORY_DANGEROUS_CONTENT", "threshold", "BLOCK_NONE"),
         Map.of("category", "HARM_CATEGORY_HARASSMENT",        "threshold", "BLOCK_NONE"),
         Map.of("category", "HARM_CATEGORY_HATE_SPEECH",       "threshold", "BLOCK_NONE"),
-        Map.of("category", "HARM_CATEGORY_SEXUALLY_EXPLICIT", "threshold", "BLOCK_NONE"),
-        Map.of("category", "HARM_CATEGORY_CIVIC_INTEGRITY",   "threshold", "BLOCK_NONE")
+        Map.of("category", "HARM_CATEGORY_SEXUALLY_EXPLICIT", "threshold", "BLOCK_NONE")
     );
 
     /** Fuerza respuesta en JSON puro para evitar bloques markdown. */
@@ -87,8 +89,11 @@ public class GeminiOcrService {
                         resultado.put(k, v);
                 });
                 exitosas++;
+            } catch (HttpStatusCodeException e) {
+                log.error("Gemini OCR HTTP {} para imagen '{}': {}",
+                    e.getStatusCode(), imagen.getOriginalFilename(), e.getResponseBodyAsString());
             } catch (Exception e) {
-                log.warn("Gemini OCR falló para imagen '{}': {}", imagen.getOriginalFilename(), e.getMessage());
+                log.error("Gemini OCR falló para imagen '{}': {}", imagen.getOriginalFilename(), e.getMessage(), e);
             }
         }
         if (procesadas > 0 && exitosas == 0) {
