@@ -60,6 +60,22 @@ public class ContratoController {
                 .body(contratoService.agregarBeneficiario(id, request));
     }
 
+    @PutMapping("/{id}/beneficiarios/{beneficiarioId}")
+    public ResponseEntity<BeneficiarioResponse> actualizarBeneficiario(
+            @PathVariable Long id,
+            @PathVariable Long beneficiarioId,
+            @Valid @RequestBody BeneficiarioRequest request) {
+        return ResponseEntity.ok(contratoService.actualizarBeneficiario(id, beneficiarioId, request));
+    }
+
+    @DeleteMapping("/{id}/beneficiarios/{beneficiarioId}")
+    public ResponseEntity<Void> eliminarBeneficiario(
+            @PathVariable Long id,
+            @PathVariable Long beneficiarioId) {
+        contratoService.eliminarBeneficiario(id, beneficiarioId);
+        return ResponseEntity.noContent().build();
+    }
+
     @PostMapping
     @PreAuthorize("hasAnyRole('ADMIN', 'AGENTE', 'CLIENTE')")
     public ResponseEntity<ContratoResponse> crear(@Valid @RequestBody ContratoRequest request) {

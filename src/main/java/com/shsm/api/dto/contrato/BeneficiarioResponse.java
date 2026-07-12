@@ -9,7 +9,13 @@ public record BeneficiarioResponse(
         Long contratoId,
         Long personaId,
         String nombreCompleto,
+        String nombre,
+        String apPaterno,
+        String apMaterno,
+        String telefono,
+        String correo,
         String parentesco,
+        Long parentescoId,
         BigDecimal porcentajeCobertura,
         Boolean esTitular
 ) {
@@ -21,7 +27,13 @@ public record BeneficiarioResponse(
                 b.getContrato().getId(),
                 b.getPersona().getId(),
                 nombre.trim(),
+                b.getPersona().getNombre(),
+                b.getPersona().getApPaterno(),
+                b.getPersona().getApMaterno(),
+                b.getPersona().getTelefono(),
+                b.getPersona().getCorreo(),
                 b.getParentesco() != null ? b.getParentesco().getNombre() : null,
+                b.getParentesco() != null ? b.getParentesco().getId() : null,
                 b.getPorcentajeCobertura(),
                 b.getEsTitular()
         );

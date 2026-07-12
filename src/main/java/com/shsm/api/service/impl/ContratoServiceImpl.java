@@ -177,6 +177,56 @@ public class ContratoServiceImpl implements ContratoService {
     }
 
     @Override
+    @Transactional
+    public BeneficiarioResponse actualizarBeneficiario(Long contratoId, Long beneficiarioId, BeneficiarioRequest req) {
+        Beneficiario benef = beneficiarioRepository.findById(beneficiarioId)
+                .filter(b -> b.getContrato().getId().equals(contratoId) && Boolean.TRUE.equals(b.getActivo()))
+                .orElseThrow(() -> new ResourceNotFoundException("Beneficiario", beneficiarioId));
+
+        Persona persona = benef.getPersona();
+        persona.setNombre(req.nombre());
+        persona.setApPaterno(req.apPaterno());
+        persona.setApMaterno(req.apMaterno());
+        if (req.telefono() != null) persona.setTelefono(req.telefono());
+        if (req.correo()   != null) persona.setCorreo(req.correo());
+        if (req.fechaNacimiento() != null && !req.fechaNacimiento().isBlank()) {
+            persona.setFechaNacimiento(LocalDate.parse(req.fechaNacimiento()));
+        }
+        personaRepository.save(persona);
+
+        benef.setPorcentajeCobertura(req.porcentajeCobertura());
+
+        if (req.parentescoId() != null) {
+            Parentesco parentesco = parentescoRepository.findById(req.parentescoId())
+                    .orElseThrow(() -> new ResourceNotFoundException("Parentesco", req.parentescoId()));
+            if (!java.util.Set.of("CONYUGE", "HIJO").contains(parentesco.getClave())) {
+                throw new BusinessException("Solo se permiten beneficiarios con parentesco C\u00f3nyuge o Hijo(a).");
+            }
+            if ("HIJO".equals(parentesco.getClave())) {
+                String fnac = (req.fechaNacimiento() != null && !req.fechaNacimiento().isBlank())
+                        ? req.fechaNacimiento()
+                        : (persona.getFechaNacimiento() != null ? persona.getFechaNacimiento().toString() : null);
+                if (fnac == null) throw new BusinessException("La fecha de nacimiento es requerida para parentesco Hijo(a).");
+                int edad = Period.between(LocalDate.parse(fnac), LocalDate.now()).getYears();
+                if (edad > 21) throw new BusinessException(
+                        "El beneficiario Hijo(a) no puede tener m\u00e1s de 21 a\u00f1os (edad: " + edad + ").");
+            }
+            benef.setParentesco(parentesco);
+        }
+        return BeneficiarioResponse.from(beneficiarioRepository.save(benef));
+    }
+
+    @Override
+    @Transactional
+    public void eliminarBeneficiario(Long contratoId, Long beneficiarioId) {
+        Beneficiario benef = beneficiarioRepository.findById(beneficiarioId)
+                .filter(b -> b.getContrato().getId().equals(contratoId) && Boolean.TRUE.equals(b.getActivo()))
+                .orElseThrow(() -> new ResourceNotFoundException("Beneficiario", beneficiarioId));
+        benef.setActivo(false);
+        beneficiarioRepository.save(benef);
+    }
+
+    @Override
     public void validarElegibilidadEdad(Long personaId) {
         Persona persona = personaRepository.findById(personaId)
                 .orElseThrow(() -> new ResourceNotFoundException("Persona", personaId));

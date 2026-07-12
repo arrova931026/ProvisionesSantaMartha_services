@@ -16,6 +16,8 @@ public interface ContratoService {
     List<BeneficiarioResponse> listarBeneficiariosDeContrato(Long contratoId);
     ContratoResponse crear(ContratoRequest request);
     BeneficiarioResponse agregarBeneficiario(Long contratoId, BeneficiarioRequest request);
+    BeneficiarioResponse actualizarBeneficiario(Long contratoId, Long beneficiarioId, BeneficiarioRequest request);
+    void eliminarBeneficiario(Long contratoId, Long beneficiarioId);
     ContratoResponse actualizarEstado(Long id, String estadoClave);
     void cancelar(Long id);
     /** Valida que la persona cumpla los requisitos de edad para contratar. */
