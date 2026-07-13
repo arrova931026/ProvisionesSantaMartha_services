@@ -53,6 +53,7 @@ mercadopago:
   access-token: ${MP_ACCESS_TOKEN}
   public-key: ${MP_PUBLIC_KEY}
   back-url-base: ${MP_BACK_URL_BASE}
+  webhook-secret: ${MP_WEBHOOK_SECRET:}
 
 server:
   port: ${PORT}
