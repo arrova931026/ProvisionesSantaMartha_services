@@ -19,6 +19,13 @@ public interface PagoRepository extends JpaRepository<Pago, Long> {
 
     boolean existsByReferenciaExterna(String referenciaExterna);
 
+    @org.springframework.data.jpa.repository.Query(
+        "SELECT p.cobro.id, p.fechaPago FROM Pago p " +
+        "WHERE p.cobro.id IN :ids " +
+        "AND p.fechaPago = (SELECT MAX(p2.fechaPago) FROM Pago p2 WHERE p2.cobro.id = p.cobro.id)")
+    java.util.List<Object[]> findLatestFechasPagoByCobros(
+        @org.springframework.data.repository.query.Param("ids") java.util.List<Long> ids);
+
     @Query("""
             SELECT SUM(p.montoPagado) FROM Pago p
             WHERE p.contrato.id = :contratoId

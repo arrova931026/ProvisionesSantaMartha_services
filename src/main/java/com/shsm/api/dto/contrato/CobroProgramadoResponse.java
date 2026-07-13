@@ -26,16 +26,20 @@ public record CobroProgramadoResponse(
         String       referenciaPago
 ) {
     public static CobroProgramadoResponse from(CobroProgramado c) {
+        return from(c, null);
+    }
+
+    public static CobroProgramadoResponse from(CobroProgramado c, LocalDate fechaPago) {
         return new CobroProgramadoResponse(
                 c.getId(),
                 c.getContrato().getId(),
                 c.getNumeroMensualidad(),
                 c.getFechaProgramada(),
-                c.getFechaLimite(),          // fecha límite → "fecha vencimiento" para el frontend
+                c.getFechaLimite(),
                 c.getMonto(),
-                c.getEstado().getClave(),     // clave del estado → "estadoCobro" para el frontend
-                null,                         // fechaPago: se registra en la entidad Pago, no aquí
-                null                          // referenciaPago: se registra en la entidad Pago
+                c.getEstado().getClave(),
+                fechaPago,
+                null
         );
     }
 }
