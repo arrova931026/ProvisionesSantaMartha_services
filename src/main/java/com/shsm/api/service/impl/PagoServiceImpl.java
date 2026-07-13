@@ -1,13 +1,19 @@
 package com.shsm.api.service.impl;
 
+import com.mercadopago.MercadoPagoConfig;
+import com.mercadopago.client.payment.PaymentClient;
+import com.mercadopago.resources.payment.Payment;
 import com.shsm.api.dto.pago.PagoRequest;
 import com.shsm.api.dto.pago.PagoResponse;
+import com.shsm.api.entity.CobroProgramado;
 import com.shsm.api.entity.Pago;
 import com.shsm.api.entity.Recibo;
+import com.shsm.api.entity.catalog.MetodoPago;
 import com.shsm.api.exception.ResourceNotFoundException;
 import com.shsm.api.repository.*;
 import com.shsm.api.service.PagoService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -21,6 +27,9 @@ import java.util.List;
 @Service
 @RequiredArgsConstructor
 public class PagoServiceImpl implements PagoService {
+
+    @Value("${mercadopago.access-token}")
+    private String mpAccessToken;
 
     private final PagoRepository pagoRepository;
     private final ContratoRepository contratoRepository;
@@ -96,6 +105,48 @@ public class PagoServiceImpl implements PagoService {
         recibo.setPago(pago);
         recibo.setFolioRecibo(generarFolio());
         reciboRepository.save(recibo);
+    }
+
+    @Override
+    @Transactional
+    public void procesarWebhookMP(long paymentId) {
+        try {
+            MercadoPagoConfig.setAccessToken(mpAccessToken);
+            Payment payment = new PaymentClient().get(paymentId);
+            if (payment == null || !"approved".equals(payment.getStatus())) return;
+
+            String externalRef = payment.getExternalReference();
+            if (externalRef == null) return;
+
+            // Idempotencia: no procesar dos veces el mismo pago
+            String mpRef = "MP-" + paymentId;
+            if (pagoRepository.existsByReferenciaExterna(mpRef)) return;
+
+            long cobroId = Long.parseLong(externalRef);
+            CobroProgramado cobro = cobroRepository.findById(cobroId).orElse(null);
+            if (cobro == null || "PAGADO".equals(cobro.getEstado().getClave())) return;
+
+            // Marcar cobro como PAGADO
+            estadoPagoRepository.findByClave("PAGADO").ifPresent(cobro::setEstado);
+            cobroRepository.save(cobro);
+
+            // Registrar el pago
+            MetodoPago metodo = metodoPagoRepository.findByClave("MERCADO_PAGO")
+                    .orElseThrow(() -> new RuntimeException("Método MERCADO_PAGO no encontrado"));
+
+            Pago pago = new Pago();
+            pago.setContrato(cobro.getContrato());
+            pago.setCobro(cobro);
+            pago.setMetodo(metodo);
+            pago.setMontoPagado(cobro.getMonto());
+            pago.setFechaPago(OffsetDateTime.now());
+            pago.setReferenciaExterna(mpRef);
+            pago.setNotas("Pago vía Mercado Pago (id: " + paymentId + ")");
+
+            generarRecibo(pagoRepository.save(pago));
+        } catch (Exception e) {
+            throw new RuntimeException("Error procesando webhook MP: " + e.getMessage(), e);
+        }
     }
 
     private String generarFolio() {

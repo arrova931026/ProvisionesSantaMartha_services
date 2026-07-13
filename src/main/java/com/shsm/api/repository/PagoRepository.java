@@ -17,6 +17,8 @@ public interface PagoRepository extends JpaRepository<Pago, Long> {
 
     Page<Pago> findByContratoId(Long contratoId, Pageable pageable);
 
+    boolean existsByReferenciaExterna(String referenciaExterna);
+
     @Query("""
             SELECT SUM(p.montoPagado) FROM Pago p
             WHERE p.contrato.id = :contratoId

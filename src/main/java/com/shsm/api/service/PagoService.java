@@ -12,4 +12,5 @@ public interface PagoService {
     Page<PagoResponse> listar(Long contratoId, Pageable pageable);
     PagoResponse obtener(Long id);
     PagoResponse registrar(PagoRequest request, String usernameRegistrador);
+    void procesarWebhookMP(long paymentId);
 }
