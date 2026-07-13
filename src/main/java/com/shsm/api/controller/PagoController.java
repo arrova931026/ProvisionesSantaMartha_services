@@ -104,6 +104,24 @@ public class PagoController {
         }
     }
 
+    /**
+     * Confirmación directa del pago desde el frontend al regresar de Mercado Pago.
+     * El frontend envía el collection_id (payment ID) que MP incluye en la back_url.
+     * Más confiable que esperar el webhook en caso de delays.
+     */
+    @PostMapping("/cobros/{cobroId}/confirmar-mp")
+    public ResponseEntity<Void> confirmarPagoMP(
+            @PathVariable Long cobroId,
+            @RequestParam String paymentId) {
+        try {
+            pagoService.procesarWebhookMP(Long.parseLong(paymentId));
+        } catch (Exception e) {
+            Logger.getLogger(PagoController.class.getName())
+                  .warning("Error confirmando pago MP " + paymentId + ": " + e.getMessage());
+        }
+        return ResponseEntity.ok().build();
+    }
+
     @GetMapping
     @PreAuthorize("hasAnyRole('ADMIN', 'AGENTE')")
     public ResponseEntity<Page<PagoResponse>> listar(
