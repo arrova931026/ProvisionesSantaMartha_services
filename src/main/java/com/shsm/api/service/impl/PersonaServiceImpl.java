@@ -102,6 +102,25 @@ public class PersonaServiceImpl implements PersonaService {
     }
 
     @Override
+    @Transactional(readOnly = true)
+    public String obtenerFotoUrlPorUsername(String username) {
+        return usuarioRepository.findByUsername(username)
+                .map(u -> u.getPersona() != null ? u.getPersona().getFotoUrl() : null)
+                .orElse(null);
+    }
+
+    @Override
+    @Transactional
+    public void guardarFotoUrl(String username, String fotoUrl) {
+        usuarioRepository.findByUsername(username).ifPresent(u -> {
+            if (u.getPersona() != null) {
+                u.getPersona().setFotoUrl(fotoUrl);
+                personaRepository.save(u.getPersona());
+            }
+        });
+    }
+
+    @Override
     @Transactional
     public void eliminar(Long id) {
         Persona persona = findById(id);

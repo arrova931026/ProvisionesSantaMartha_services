@@ -8,19 +8,15 @@ import com.shsm.api.exception.ResourceNotFoundException;
 import com.shsm.api.repository.DocumentoRepository;
 import com.shsm.api.repository.PersonaRepository;
 import com.shsm.api.repository.TipoDocumentoRepository;
+import com.shsm.api.service.FtpStorageService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.nio.file.StandardCopyOption;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -34,9 +30,7 @@ public class DocumentoController {
     private final DocumentoRepository      documentoRepository;
     private final PersonaRepository        personaRepository;
     private final TipoDocumentoRepository  tipoDocumentoRepository;
-
-    @Value("${app.docs-dir:docs}")
-    private String docsDir;
+    private final FtpStorageService        ftpStorageService;
 
     private static final Set<String> TIPOS_REQUERIDOS = Set.of("INE", "CURP", "COMPROBANTE_DOM", "ACTA_NAC", "RFC");
     private static final Set<String> MIME_PERMITIDOS = Set.of(
@@ -63,37 +57,36 @@ public class DocumentoController {
         }
 
         String ext = resolverExtension(mime, archivo.getOriginalFilename());
-        Path dir = Paths.get(docsDir, String.valueOf(personaId)).toAbsolutePath();
-        Files.createDirectories(dir);
 
-        // Eliminar versiones previas del mismo tipo
+        // Eliminar versiones previas del mismo tipo en FTP
         for (String e : List.of("jpg","jpeg","png","webp","pdf")) {
-            Files.deleteIfExists(dir.resolve(clave.toUpperCase() + "." + e));
+            ftpStorageService.delete("docs/" + personaId + "/" + clave.toUpperCase() + "." + e);
         }
 
-        String nombreArchivo = clave.toUpperCase() + "." + ext;
-        Path destino = dir.resolve(nombreArchivo);
-        Files.copy(archivo.getInputStream(), destino, StandardCopyOption.REPLACE_EXISTING);
+        String remotePath = "docs/" + personaId + "/" + clave.toUpperCase() + "." + ext;
+        String url = ftpStorageService.upload(archivo.getInputStream(), remotePath);
 
         // Actualizar o crear registro en BD
         List<Documento> existentes = documentoRepository.findByPersonaIdAndActivoTrue(personaId)
                 .stream().filter(d -> d.getTipo().getClave().equals(clave.toUpperCase())).toList();
         existentes.forEach(d -> { d.setActivo(false); documentoRepository.save(d); });
 
+        String nombreArchivo = clave.toUpperCase() + "." + ext;
+
         Documento doc = new Documento();
         doc.setPersona(persona);
         doc.setTipo(tipo);
         doc.setNombreArchivo(nombreArchivo);
-        doc.setRutaAlmacenamiento(destino.toString());
+        doc.setRutaAlmacenamiento(url);   // URL FTP pública
         doc.setMimeType(mime);
         doc.setTamanoBytes(archivo.getSize());
         documentoRepository.save(doc);
 
-        log.info("Documento {} subido para persona {}", clave, personaId);
+        log.info("Documento {} subido para persona {} → {}", clave, personaId, url);
         return ResponseEntity.ok(Map.of(
-                "clave", clave.toUpperCase(),
+                "clave",  clave.toUpperCase(),
                 "nombre", tipo.getNombre(),
-                "url", "/docs/" + personaId + "/" + nombreArchivo
+                "url",    url
         ));
     }
 
@@ -106,7 +99,7 @@ public class DocumentoController {
                         "id",     d.getId(),
                         "clave",  d.getTipo().getClave(),
                         "nombre", d.getTipo().getNombre(),
-                        "url",    "/docs/" + personaId + "/" + d.getNombreArchivo(),
+                        "url",    d.getRutaAlmacenamiento(),   // URL FTP pública almacenada
                         "mime",   d.getMimeType() != null ? d.getMimeType() : ""
                 ))
                 .toList();
@@ -165,18 +158,16 @@ public class DocumentoController {
                    : (mime.contains("ogg") || fn.endsWith(".ogv"))  ? "ogv"
                    : "webm";
 
-        Path dir = Paths.get(docsDir, String.valueOf(personaId)).toAbsolutePath();
-        Files.createDirectories(dir);
-
+        // Eliminar video previo (todas las extensiones)
         for (String e : List.of("webm", "mp4", "ogv")) {
-            Files.deleteIfExists(dir.resolve("VIDEO_CONSENT." + e));
+            ftpStorageService.delete("docs/" + personaId + "/VIDEO_CONSENT." + e);
         }
 
         String nombre = "VIDEO_CONSENT." + ext;
-        Files.copy(video.getInputStream(), dir.resolve(nombre), StandardCopyOption.REPLACE_EXISTING);
+        String url = ftpStorageService.upload(video.getInputStream(), "docs/" + personaId + "/" + nombre);
 
-        log.info("Video de consentimiento guardado para persona {}", personaId);
-        return ResponseEntity.ok(Map.of("url", "/docs/" + personaId + "/" + nombre));
+        log.info("Video de consentimiento guardado para persona {} → {}", personaId, url);
+        return ResponseEntity.ok(Map.of("url", url));
     }
 
     /** Elimina (desactiva) todos los documentos activos de un tipo para una persona. */
@@ -200,10 +191,9 @@ public class DocumentoController {
 
         docs.forEach(d -> {
             d.setActivo(false);
-            try {
-                Files.deleteIfExists(Paths.get(d.getRutaAlmacenamiento()));
-            } catch (IOException e) {
-                log.warn("No se pudo eliminar archivo físico: {}", d.getRutaAlmacenamiento());
+            String remotePath = ftpStorageService.toRemotePath(d.getRutaAlmacenamiento());
+            if (remotePath != null) {
+                ftpStorageService.delete(remotePath);
             }
             documentoRepository.save(d);
         });

@@ -125,6 +125,13 @@
             <version>2.1.14</version>
         </dependency>
 
+        <!-- ===== FTP Storage (Apache Commons Net) ===== -->
+        <dependency>
+            <groupId>commons-net</groupId>
+            <artifactId>commons-net</artifactId>
+            <version>3.11.1</version>
+        </dependency>
+
     </dependencies>
 
     <build>

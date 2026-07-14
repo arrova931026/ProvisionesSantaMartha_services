@@ -11,5 +11,7 @@ public interface PersonaService {
     PersonaResponse crear(PersonaRequest request);
     PersonaResponse actualizar(Long id, PersonaRequest request);    PersonaResponse actualizarMiPerfil(String username, PersonaRequest request);
     String obtenerCurpPorUsername(String username);
+    String obtenerFotoUrlPorUsername(String username);
+    void guardarFotoUrl(String username, String fotoUrl);
     void eliminar(Long id);
 }
