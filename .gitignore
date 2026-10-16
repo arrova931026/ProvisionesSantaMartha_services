@@ -11,6 +11,7 @@ target/
 # Sensible
 .env
 *.env
+.env.sh
 application-local.yml
 
 # OS

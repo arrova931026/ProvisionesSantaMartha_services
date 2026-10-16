@@ -75,7 +75,7 @@ public class Persona extends BaseEntity {
     @Column(name = "deleted_at")
     private OffsetDateTime deletedAt;
 
-    /** URL pública del archivo de foto de perfil almacenado en FTP. */
+    /** Ruta local servida por el backend para la foto de perfil. */
     @Column(name = "foto_url", length = 500)
     private String fotoUrl;
 }

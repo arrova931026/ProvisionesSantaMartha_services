@@ -2,7 +2,7 @@ package com.shsm.api.controller;
 
 import com.shsm.api.dto.persona.PersonaRequest;
 import com.shsm.api.dto.persona.PersonaResponse;
-import com.shsm.api.service.FtpStorageService;
+import com.shsm.api.service.LocalFileStorageService;
 import com.shsm.api.service.PersonaService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -27,7 +27,7 @@ import java.util.Map;
 public class PersonaController {
 
     private final PersonaService personaService;
-    private final FtpStorageService ftpStorageService;
+    private final LocalFileStorageService fileStorageService;
 
     @GetMapping
     @PreAuthorize("hasAnyRole('ADMIN', 'AGENTE')")
@@ -95,11 +95,10 @@ public class PersonaController {
 
         // Eliminar foto previa (ambas extensiones posibles)
         for (String e : List.of("jpg", "png")) {
-            ftpStorageService.delete("profile_pictures/" + curp + "." + e);
+            fileStorageService.deleteProfilePicture(curp + "." + e);
         }
 
-        String remotePath = "profile_pictures/" + curp + "." + ext;
-        String url = ftpStorageService.upload(file.getInputStream(), remotePath);
+        String url = fileStorageService.storeProfilePicture(file.getInputStream(), curp + "." + ext);
 
         personaService.guardarFotoUrl(authentication.getName(), url);
 

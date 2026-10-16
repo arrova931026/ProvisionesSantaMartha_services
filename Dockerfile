@@ -13,8 +13,9 @@ RUN mvn package -DskipTests -q
 FROM eclipse-temurin:21-jre-alpine
 WORKDIR /app
 
-# Carpeta de fotos de perfil persistida vía volumen
-RUN mkdir -p /profile_pictures
+# Carpetas de archivos locales; móntalas como volúmenes para conservarlas al recrear el contenedor.
+RUN mkdir -p /app/profile_pictures /app/docs
+VOLUME ["/app/profile_pictures", "/app/docs"]
 
 COPY --from=build /app/target/funeraria-api-1.0.0-SNAPSHOT.jar app.jar
 

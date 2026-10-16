@@ -8,11 +8,10 @@ import com.shsm.api.exception.ResourceNotFoundException;
 import com.shsm.api.repository.DocumentoRepository;
 import com.shsm.api.repository.PersonaRepository;
 import com.shsm.api.repository.TipoDocumentoRepository;
-import com.shsm.api.service.FtpStorageService;
+import com.shsm.api.service.LocalFileStorageService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -30,7 +29,7 @@ public class DocumentoController {
     private final DocumentoRepository      documentoRepository;
     private final PersonaRepository        personaRepository;
     private final TipoDocumentoRepository  tipoDocumentoRepository;
-    private final FtpStorageService        ftpStorageService;
+    private final LocalFileStorageService  fileStorageService;
 
     private static final Set<String> TIPOS_REQUERIDOS = Set.of("INE", "CURP", "COMPROBANTE_DOM", "ACTA_NAC", "RFC");
     private static final Set<String> MIME_PERMITIDOS = Set.of(
@@ -58,13 +57,13 @@ public class DocumentoController {
 
         String ext = resolverExtension(mime, archivo.getOriginalFilename());
 
-        // Eliminar versiones previas del mismo tipo en FTP
+        // Eliminar versiones previas del mismo tipo
         for (String e : List.of("jpg","jpeg","png","webp","pdf")) {
-            ftpStorageService.delete("docs/" + personaId + "/" + clave.toUpperCase() + "." + e);
+            fileStorageService.deleteDocument(personaId + "/" + clave.toUpperCase() + "." + e);
         }
 
-        String remotePath = "docs/" + personaId + "/" + clave.toUpperCase() + "." + ext;
-        String url = ftpStorageService.upload(archivo.getInputStream(), remotePath);
+        String relativePath = personaId + "/" + clave.toUpperCase() + "." + ext;
+        String url = fileStorageService.storeDocument(archivo.getInputStream(), relativePath);
 
         // Actualizar o crear registro en BD
         List<Documento> existentes = documentoRepository.findByPersonaIdAndActivoTrue(personaId)
@@ -77,7 +76,7 @@ public class DocumentoController {
         doc.setPersona(persona);
         doc.setTipo(tipo);
         doc.setNombreArchivo(nombreArchivo);
-        doc.setRutaAlmacenamiento(url);   // URL FTP pública
+        doc.setRutaAlmacenamiento(url);
         doc.setMimeType(mime);
         doc.setTamanoBytes(archivo.getSize());
         documentoRepository.save(doc);
@@ -99,7 +98,7 @@ public class DocumentoController {
                         "id",     d.getId(),
                         "clave",  d.getTipo().getClave(),
                         "nombre", d.getTipo().getNombre(),
-                        "url",    d.getRutaAlmacenamiento(),   // URL FTP pública almacenada
+                        "url",    d.getRutaAlmacenamiento(),
                         "mime",   d.getMimeType() != null ? d.getMimeType() : ""
                 ))
                 .toList();
@@ -160,11 +159,11 @@ public class DocumentoController {
 
         // Eliminar video previo (todas las extensiones)
         for (String e : List.of("webm", "mp4", "ogv")) {
-            ftpStorageService.delete("docs/" + personaId + "/VIDEO_CONSENT." + e);
+            fileStorageService.deleteDocument(personaId + "/VIDEO_CONSENT." + e);
         }
 
         String nombre = "VIDEO_CONSENT." + ext;
-        String url = ftpStorageService.upload(video.getInputStream(), "docs/" + personaId + "/" + nombre);
+        String url = fileStorageService.storeDocument(video.getInputStream(), personaId + "/" + nombre);
 
         log.info("Video de consentimiento guardado para persona {} → {}", personaId, url);
         return ResponseEntity.ok(Map.of("url", url));
@@ -191,10 +190,7 @@ public class DocumentoController {
 
         docs.forEach(d -> {
             d.setActivo(false);
-            String remotePath = ftpStorageService.toRemotePath(d.getRutaAlmacenamiento());
-            if (remotePath != null) {
-                ftpStorageService.delete(remotePath);
-            }
+            fileStorageService.deleteDocument(d.getRutaAlmacenamiento());
             documentoRepository.save(d);
         });
 
