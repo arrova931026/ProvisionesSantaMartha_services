@@ -1,6 +1,7 @@
 package com.shsm.api.controller;
 
 import com.shsm.api.entity.PlanFunerario;
+import com.shsm.api.dto.plan.PlanFunerarioResponse;
 import com.shsm.api.exception.ResourceNotFoundException;
 import com.shsm.api.repository.PlanFunerarioRepository;
 import lombok.RequiredArgsConstructor;
@@ -19,14 +20,16 @@ public class PlanFunerarioController {
     private final PlanFunerarioRepository planRepository;
 
     @GetMapping
-    public ResponseEntity<List<PlanFunerario>> listar() {
-        return ResponseEntity.ok(planRepository.findByActivoTrue());
+    public ResponseEntity<List<PlanFunerarioResponse>> listar() {
+        return ResponseEntity.ok(planRepository.findActiveWithArticles().stream()
+                .map(PlanFunerarioResponse::from).toList());
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<PlanFunerario> obtener(@PathVariable Long id) {
-        return ResponseEntity.ok(planRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("PlanFunerario", id)));
+    public ResponseEntity<PlanFunerarioResponse> obtener(@PathVariable Long id) {
+        return ResponseEntity.ok(planRepository.findByIdWithArticles(id)
+            .map(PlanFunerarioResponse::from)
+            .orElseThrow(() -> new ResourceNotFoundException("PlanFunerario", id)));
     }
 
     @PostMapping

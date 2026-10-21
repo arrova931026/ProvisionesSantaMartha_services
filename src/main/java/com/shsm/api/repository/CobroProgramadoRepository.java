@@ -26,4 +26,35 @@ public interface CobroProgramadoRepository extends JpaRepository<CobroProgramado
               AND cp.fechaProgramada <= :fecha
             """)
     List<CobroProgramado> findPendientesHastaFecha(@Param("fecha") LocalDate fecha);
+
+    @Query("""
+            SELECT COUNT(cp) FROM CobroProgramado cp
+            JOIN cp.contrato c
+            WHERE cp.estado.clave IN ('PENDIENTE', 'VENCIDO')
+              AND c.activo = true
+              AND c.deletedAt IS NULL
+              AND c.estado.clave = 'VIGENTE'
+            """)
+    long countPendientes();
+
+    @Query("""
+            SELECT COALESCE(SUM(cp.monto), 0) FROM CobroProgramado cp
+            JOIN cp.contrato c
+            WHERE cp.estado.clave IN ('PENDIENTE', 'VENCIDO')
+              AND c.activo = true
+              AND c.deletedAt IS NULL
+              AND c.estado.clave = 'VIGENTE'
+            """)
+    java.math.BigDecimal sumMontoPendiente();
+
+    @Query("""
+            SELECT COALESCE(SUM(cp.monto), 0) FROM CobroProgramado cp
+            JOIN cp.contrato c
+            WHERE cp.estado.clave IN ('PENDIENTE', 'VENCIDO')
+              AND cp.fechaProgramada < :hoy
+              AND c.activo = true
+              AND c.deletedAt IS NULL
+              AND c.estado.clave = 'VIGENTE'
+            """)
+    java.math.BigDecimal sumMontoVencido(@Param("hoy") LocalDate hoy);
 }

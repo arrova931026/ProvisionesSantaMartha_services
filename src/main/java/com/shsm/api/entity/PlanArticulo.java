@@ -27,4 +27,7 @@ public class PlanArticulo {
 
     @Column(name = "cantidad", nullable = false)
     private Short cantidad = 1;
+
+    @Column(name = "modalidad", length = 20)
+    private String modalidad;
 }

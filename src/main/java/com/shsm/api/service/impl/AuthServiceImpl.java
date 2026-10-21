@@ -126,9 +126,33 @@ public class AuthServiceImpl implements AuthService {
 
         if (personaOpt.isPresent()) {
             persona = personaOpt.get();
-            usuario = usuarioRepository.findByUsername(email)
-                    .orElseThrow(() -> new BusinessException(
-                            "Este correo ya está registrado con usuario y contraseña. Use el formulario de acceso."));
+            // Buscar por username=email o por la persona asociada (puede tener otro username)
+            Optional<Usuario> usuarioOpt = usuarioRepository.findByUsername(email)
+                    .or(() -> usuarioRepository.findByPersonaId(persona.getId()));
+
+            if (usuarioOpt.isPresent()) {
+                Usuario u = usuarioOpt.get();
+                // Reactivar la cuenta si estaba dada de baja
+                if (Boolean.FALSE.equals(u.getActivo())) {
+                    u.setActivo(true);
+                    u.setDeletedAt(null);
+                    usuario = usuarioRepository.save(u);
+                } else {
+                    usuario = u;
+                }
+            } else {
+                // La persona existe pero no tiene cuenta de acceso:
+                // se crea una vinculada a esa persona en lugar de rechazar el login.
+                Role rolCliente = roleRepository.findByClave("CLIENTE")
+                        .orElseThrow(() -> new BusinessException("Rol CLIENTE no encontrado"));
+
+                usuario = new Usuario();
+                usuario.setPersona(persona);
+                usuario.setRol(rolCliente);
+                usuario.setUsername(email);
+                usuario.setPasswordHash(passwordEncoder.encode(UUID.randomUUID().toString()));
+                usuarioRepository.save(usuario);
+            }
         } else {
             String givenName = (String) tokenInfo.getOrDefault("given_name", "Usuario");
             String familyName = (String) tokenInfo.getOrDefault("family_name", "Google");

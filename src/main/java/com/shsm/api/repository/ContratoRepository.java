@@ -26,4 +26,26 @@ public interface ContratoRepository extends JpaRepository<Contrato, Long> {
 
     @Query("SELECT COUNT(c) FROM Contrato c WHERE c.estado.clave = :clave AND c.activo = true")
     long countByEstadoClave(@Param("clave") String clave);
+
+    /** Contratos vigentes cuyo vencimiento cae dentro del rango dado (renovaciones próximas). */
+    @Query("""
+            SELECT COUNT(c) FROM Contrato c
+            WHERE c.activo = true
+              AND c.deletedAt IS NULL
+              AND c.fechaVencimiento BETWEEN :desde AND :hasta
+            """)
+    long countRenovacionesProximas(@Param("desde") java.time.LocalDate desde,
+                                   @Param("hasta") java.time.LocalDate hasta);
+
+    /** Contratos vigentes con al menos un cobro vencido (morosos). */
+    @Query("""
+            SELECT COUNT(DISTINCT c) FROM Contrato c
+            JOIN CobroProgramado cp ON cp.contrato = c
+            WHERE c.activo = true
+              AND c.deletedAt IS NULL
+              AND c.estado.clave = 'VIGENTE'
+              AND cp.estado.clave IN ('PENDIENTE', 'VENCIDO')
+              AND cp.fechaProgramada < :hoy
+            """)
+    long countMorosos(@Param("hoy") java.time.LocalDate hoy);
 }

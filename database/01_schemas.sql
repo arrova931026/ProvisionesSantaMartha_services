@@ -236,6 +236,7 @@ CREATE TABLE planes_funerarios (
     id                  BIGINT          GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     nombre              VARCHAR(150)    NOT NULL,
     descripcion         TEXT,
+    tipo_plan           VARCHAR(20)     NOT NULL DEFAULT 'HUMANOS',
     precio_total        NUMERIC(12,2)   NOT NULL,          -- precio de lista del plan completo
     mensualidad         NUMERIC(10,2)   NOT NULL,          -- cuota mensual estándar
     duracion_meses      SMALLINT        NOT NULL,          -- período de pago (ej. 60, 120 meses)
@@ -262,6 +263,7 @@ CREATE TABLE plan_articulos (
     plan_id             BIGINT          NOT NULL REFERENCES planes_funerarios (id),
     articulo_id         BIGINT          NOT NULL REFERENCES catalogo_articulos (id),
     cantidad            SMALLINT        NOT NULL DEFAULT 1,
+    modalidad           VARCHAR(20),
     PRIMARY KEY (plan_id, articulo_id)
 );
 
@@ -282,6 +284,7 @@ CREATE TABLE contratos (
     fecha_vencimiento   DATE,           -- calculado: fecha_inicio + duracion_meses
     precio_contratado   NUMERIC(12,2)   NOT NULL,          -- precio pactado (puede diferir del catálogo)
     mensualidad_pactada NUMERIC(10,2)   NOT NULL,
+    frecuencia_pago     VARCHAR(15)     NOT NULL DEFAULT 'MENSUAL',
     notas               TEXT,
     activo              BOOLEAN         NOT NULL DEFAULT TRUE,
     deleted_at          TIMESTAMPTZ,
@@ -327,7 +330,7 @@ CREATE TABLE documentos (
 -- 7. COBROS Y PAGOS
 -- ===========================================================================
 
--- 7.1 Calendario de cobros programados (una fila por mensualidad esperada)
+-- 7.1 Calendario de cobros programados (una fila por cuota esperada)
 CREATE TABLE cobros_programados (
     id                  BIGINT          GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     contrato_id         BIGINT          NOT NULL REFERENCES contratos (id) ON DELETE CASCADE,

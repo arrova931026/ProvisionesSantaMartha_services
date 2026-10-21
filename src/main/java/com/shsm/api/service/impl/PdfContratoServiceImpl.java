@@ -16,7 +16,6 @@ import java.io.ByteArrayOutputStream;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
 import java.util.Locale;
 
 @Slf4j
@@ -68,12 +67,21 @@ public class PdfContratoServiceImpl implements PdfContratoService {
         String planNombre   = c.getPlan().getNombre();
         BigDecimal precio   = c.getPrecioContratado();
         BigDecimal mensual  = c.getMensualidadPactada();
+        boolean esMascota = "MASCOTAS".equals(c.getPlan().getTipoPlan());
+        int totalCuotas = com.shsm.api.service.CalendarioCuotas.generar(
+            c.getFechaInicio(), c.getPlan().getDuracionMeses(), c.getFrecuenciaPago()).size();
         BigDecimal enganche = precio.multiply(BigDecimal.valueOf(0.10)).setScale(2, RoundingMode.HALF_UP);
 
         LocalDate hoy = LocalDate.now();
         String dia    = String.valueOf(hoy.getDayOfMonth());
         String mes    = MESES[hoy.getMonthValue() - 1];
         String anio   = String.format("%02d", hoy.getYear() % 100); // "26" para 2026
+        String frecuencia = switch (c.getFrecuenciaPago()) {
+            case "SEMANAL" -> "SEMANALES";
+            case "QUINCENAL" -> "QUINCENALES";
+            case "ANUAL" -> "ANUALES";
+            default -> "MENSUALES";
+        };
 
         try (ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
             Document doc = new Document(PageSize.LETTER, 50, 50, 60, 40);
@@ -90,7 +98,7 @@ public class PdfContratoServiceImpl implements PdfContratoService {
             header.setAlignment(Element.ALIGN_CENTER);
             doc.add(header);
 
-            Paragraph subHeader = new Paragraph("CONTRATO FAMILIAR", boldFont);
+            Paragraph subHeader = new Paragraph(esMascota ? "SERVICIO DE CREMACIÓN DE MASCOTAS" : "CONTRATO FAMILIAR", boldFont);
             subHeader.setAlignment(Element.ALIGN_CENTER);
             subHeader.setSpacingAfter(12);
             doc.add(subHeader);
@@ -108,8 +116,13 @@ public class PdfContratoServiceImpl implements PdfContratoService {
             doc.add(presP);
 
             // ── Declaraciones ────────────────────────────────────────────────
-            addSection(doc, boldFont, normalFont, "I", "DECLARA \"LA EMPRESA\" A TRAVÉS DE SU ADMINISTRADOR ÚNICO:",
-                new String[]{
+            String[] descripcionServicios = esMascota
+                    ? new String[]{
+                        "I.I QUE EL SERVICIO CONTRATADO INCLUYE LA RECOLECCIÓN DE LA MASCOTA EN DOMICILIO O CLÍNICA, "
+                        + "SU CREMACIÓN INDIVIDUAL, LA ENTREGA DE SUS RESTOS EN URNA Y UNA CONSTANCIA DIGITAL DE CREMACIÓN.",
+                        "I.II LA FECHA Y CONDICIONES DE RECOLECCIÓN SE COORDINARÁN CON LA FAMILIA DEL ANIMAL DE COMPAÑÍA."
+                    }
+                    : new String[]{
                     "I.I   QUE ES UNA EMPRESA LEGALMENTE CONSTITUIDA CUYO DOMICILIO FISCAL SE ENCUENTRA EN CIPRÉS 905 "
                     + "COLONIA CHAPULTEPEC, EN LA CIUDAD DE POZA RICA DE HIDALGO, VERACRUZ, DEDICADA A LOS SERVICIOS "
                     + "FUNERARIOS DE INHUMACIÓN Y CREMACIÓN EN LA ZONA DE POZA RICA DE HIDALGO Y ÁREA METROPOLITANA.",
@@ -125,29 +138,34 @@ public class PdfContratoServiceImpl implements PdfContratoService {
                     + "ÁREA METROPOLITANA, PERSONAL CAPACITADO PARA LA ATENCIÓN DEL SERVICIO FUNERARIO, RENTA DE ATAÚD "
                     + "DE MADERA DE PINO BARNIZADO, CREMACIÓN DE CADÁVER, URNA BÁSICA PARA RESTOS ÁRIDOS Y CONSTANCIA "
                     + "DE CREMACIÓN. LOS IMPUESTOS, ACTAS Y PERMISOS SON A CARGO DEL CLIENTE O SUS DEUDOS."
-                }
-            );
+                    };
+            addSection(doc, boldFont, normalFont, "I", "DECLARA \"LA EMPRESA\" A TRAVÉS DE SU ADMINISTRADOR ÚNICO:", descripcionServicios);
 
+            String declaracionPago = esMascota
+                    ? "II.I ESTAR DE ACUERDO EN REALIZAR EL PAGO ÚNICO DE $" + fmtMonto(precio)
+                        + " POR EL SERVICIO DE CREMACIÓN PARA MASCOTAS CONTRATADO."
+                    : "II.I  ESTAR DE ACUERDO EN REALIZAR EL PAGO DE SU PLAN DE PREVISIÓN FUNERARIA "
+                        + planNombre.toUpperCase() + " CON UN COSTO DE $" + fmtMonto(precio)
+                        + ", PAGANDO UN ENGANCHE DEL 10% DEL PRECIO DEL SERVICIO CONTRATADO DE $" + fmtMonto(enganche)
+                        + " Y LAS " + totalCuotas + " CUOTAS " + frecuencia + " DE $" + fmtMonto(mensual) + ".";
             addSection(doc, boldFont, normalFont, "II", "DECLARA EL(LA) \"CLIENTE\":",
-                new String[]{
-                    "II.I  ESTAR DE ACUERDO EN REALIZAR EL PAGO DE SU PLAN DE PREVISIÓN FUNERARIA "
-                    + planNombre.toUpperCase()
-                    + " CON UN COSTO DE $" + fmtMonto(precio)
-                    + ", PAGANDO UN ENGANCHE DEL 10% DEL PRECIO DEL SERVICIO CONTRATADO DE $" + fmtMonto(enganche)
-                    + " Y LAS " + c.getPlan().getDuracionMeses() + " MENSUALIDADES DE $" + fmtMonto(mensual) + "."
-                }
-            );
+                new String[]{ declaracionPago });
 
+            String[] declaracionPartes = esMascota
+                    ? new String[]{
+                        "III.I ESTE SERVICIO SE PRESTA PARA LA MASCOTA INDICADA POR EL CLIENTE.",
+                        "III.II LAS PARTES ACORDARÁN LA ENTREGA DE LOS RESTOS Y LA CONSTANCIA DIGITAL DE CREMACIÓN."
+                    }
+                    : new String[]{
+                        "III.I  ESTE CONTRATO ES PARA EL TITULAR DEL PRESENTE, PERO TAMBIÉN ES TRANSFERIBLE PARA FAMILIARES "
+                        + "O AMIGOS DEL CLIENTE.",
+                        "III.II QUE AL FALLECIMIENTO DEL CLIENTE, LA EMPRESA SE OBLIGA A BRINDAR EL SERVICIO CONTRATADO YA SEA "
+                        + "DE INHUMACIÓN O CREMACIÓN, DANDO POR TERMINADAS LAS RESPONSABILIDADES DE LA EMPRESA.",
+                        "III.III QUE NO TIENEN INCONVENIENTE EN LIQUIDAR LOS PORTADORES DEL CONTRATO A LA HORA DE SOLICITAR EL "
+                        + "SERVICIO FUNERARIO CONTRATADO EN CASO DE NO ESTAR PAGADO EN SU TOTALIDAD."
+                    };
             addSection(doc, boldFont, normalFont, "III", "DECLARAN \"LAS PARTES\":",
-                new String[]{
-                    "III.I  ESTE CONTRATO ES PARA EL TITULAR DEL PRESENTE, PERO TAMBIÉN ES TRANSFERIBLE PARA FAMILIARES "
-                    + "O AMIGOS DEL CLIENTE.",
-                    "III.II QUE AL FALLECIMIENTO DEL CLIENTE, LA EMPRESA SE OBLIGA A BRINDAR EL SERVICIO CONTRATADO YA SEA "
-                    + "DE INHUMACIÓN O CREMACIÓN, DANDO POR TERMINADAS LAS RESPONSABILIDADES DE LA EMPRESA.",
-                    "III.III QUE NO TIENEN INCONVENIENTE EN LIQUIDAR LOS PORTADORES DEL CONTRATO A LA HORA DE SOLICITAR EL "
-                    + "SERVICIO FUNERARIO CONTRATADO EN CASO DE NO ESTAR PAGADO EN SU TOTALIDAD."
-                }
-            );
+                declaracionPartes);
 
             // ── Cláusulas ────────────────────────────────────────────────────
             Paragraph clausulasTitle = new Paragraph("CLÁUSULAS", boldFont);
@@ -156,10 +174,16 @@ public class PdfContratoServiceImpl implements PdfContratoService {
             doc.add(clausulasTitle);
 
             String[] clausulas = {
-                "PRIMERA:  LA VIGENCIA DEL PRESENTE CONTRATO ES A PARTIR DEL PAGO DEL ENGANCHE HASTA EL TIEMPO EN QUE SE REQUIERA EL SERVICIO FUNERARIO CONTRATADO.",
-                "SEGUNDA:  \"LA EMPRESA\" SE HARÁ CARGO DE LA GESTIÓN DE TRÁMITES ANTE LAS DEPENDENCIAS CORRESPONDIENTES, QUEDANDO EL PAGO DE IMPUESTOS Y DERECHOS A CARGO DEL \"CLIENTE\".",
-                "TERCERA:  EL VALOR DE ESTE CONTRATO ES DE LA CANTIDAD DE $" + fmtMonto(precio)
-                        + " ENGANCHE 10% $" + fmtMonto(enganche) + " MENSUALIDAD $" + fmtMonto(mensual) + ".",
+                esMascota
+                    ? "PRIMERA: EL SERVICIO DE CREMACIÓN DE MASCOTAS SE PRESTARÁ EN LA FECHA COORDINADA CON EL CLIENTE."
+                    : "PRIMERA: LA VIGENCIA DEL PRESENTE CONTRATO ES A PARTIR DEL PAGO DEL ENGANCHE HASTA EL TIEMPO EN QUE SE REQUIERA EL SERVICIO FUNERARIO CONTRATADO.",
+                esMascota
+                    ? "SEGUNDA: LA EMPRESA COORDINARÁ CON EL CLIENTE LA RECOLECCIÓN Y ENTREGA DE LOS RESTOS DE LA MASCOTA."
+                    : "SEGUNDA: \"LA EMPRESA\" SE HARÁ CARGO DE LA GESTIÓN DE TRÁMITES ANTE LAS DEPENDENCIAS CORRESPONDIENTES, QUEDANDO EL PAGO DE IMPUESTOS Y DERECHOS A CARGO DEL \"CLIENTE\".",
+                esMascota
+                    ? "TERCERA: EL PRECIO DEL SERVICIO CONTRATADO ES DE $" + fmtMonto(precio) + ", PAGADERO EN UNA EXHIBICIÓN."
+                    : "TERCERA: EL VALOR DE ESTE CONTRATO ES DE LA CANTIDAD DE $" + fmtMonto(precio)
+                        + " ENGANCHE 10% $" + fmtMonto(enganche) + " " + totalCuotas + " CUOTAS " + frecuencia + " DE $" + fmtMonto(mensual) + ".",
                 "CUARTA:   LAS PARTES CONVIENEN QUE PARA LA INTERPRETACIÓN Y CUMPLIMIENTO DE ESTE CONTRATO SE SOMETEN A LA "
                         + "COMPETENCIA DE LOS TRIBUNALES CON RESIDENCIA EN EL MUNICIPIO DE POZA RICA DE HIDALGO, VERACRUZ, "
                         + "RENUNCIANDO EXPRESAMENTE A CUALQUIER OTRO FUERO PRESENTE O FUTURO. ENTERADAS LAS PARTES DEL CONTENIDO, "

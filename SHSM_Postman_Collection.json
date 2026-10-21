@@ -2,13 +2,13 @@
   "info": {
     "_postman_id": "shsm-api-v1-collection",
     "name": "SHSM API – Sociedad Humanista Santa Martha",
-    "description": "API REST v1.1.0 · Spring Boot 3.4.0 · Java 21 · PostgreSQL\n\nBase URL: http://localhost:8080/api\n\n**Instrucciones:**\n1. Ejecuta **POST /auth/login**. El script de test guarda el token automáticamente en la variable de colección `access_token`.\n2. Todos los demás endpoints protegidos usan `{{access_token}}` en el header Authorization.\n3. Las carpetas siguen el mismo orden que la documentación HTML v1.1.0.",
+    "description": "API REST v1.2.0 · Spring Boot 3.4.0 · Java 21 · PostgreSQL\n\nBase URL: http://localhost:8081/api\n\n**Instrucciones:**\n1. Ejecuta **POST /auth/login**. El script de test guarda el token automáticamente en la variable de colección `access_token`.\n2. Todos los demás endpoints protegidos usan `{{access_token}}` en el header Authorization.\n3. Las carpetas siguen el orden de los controladores del proyecto.\n\n**Novedades v1.2.0:** beneficiarios del contrato (alta/edición/baja), PDF del contrato (descarga y envío por correo), verificación de elegibilidad, integración Mercado Pago (preferencia, confirmación y webhook), carga de documentos y video de consentimiento.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "variable": [
     {
       "key": "base_url",
-      "value": "http://localhost:8080/api",
+      "value": "http://localhost:8081/api",
       "type": "string"
     },
     {
@@ -38,6 +38,11 @@
     },
     {
       "key": "contrato_id",
+      "value": "1",
+      "type": "string"
+    },
+    {
+      "key": "beneficiario_id",
       "value": "1",
       "type": "string"
     },
@@ -375,7 +380,8 @@
                 "catalogos",
                 "parentescos"
               ]
-            }
+            },
+            "description": "Devuelve solo los parentescos permitidos para beneficiarios: `CONYUGE` e `HIJO`."
           }
         },
         {
@@ -891,6 +897,86 @@
           }
         },
         {
+          "name": "POST Agregar Beneficiario",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    const json = pm.response.json();",
+                  "    if (json.id) pm.collectionVariables.set('beneficiario_id', json.id);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Ana\",\n  \"apPaterno\": \"García\",\n  \"apMaterno\": \"López\",\n  \"fechaNacimiento\": \"1988-05-10\",\n  \"telefono\": \"5512345678\",\n  \"correo\": \"ana@example.com\",\n  \"parentescoId\": 1,\n  \"porcentajeCobertura\": 100.00\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/contratos/{{contrato_id}}/beneficiarios",
+              "host": ["{{base_url}}"],
+              "path": ["contratos", "{{contrato_id}}", "beneficiarios"]
+            },
+            "description": "**Autenticado.** Campos requeridos: `nombre`, `apPaterno`, `parentescoId`, `porcentajeCobertura` (0.01–100). `parentescoId` se obtiene de `GET /catalogos/parentescos` (CONYUGE, HIJO). Respuesta: `201 Created`."
+          }
+        },
+        {
+          "name": "PUT Actualizar Beneficiario",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Ana María\",\n  \"apPaterno\": \"García\",\n  \"apMaterno\": \"López\",\n  \"fechaNacimiento\": \"1988-05-10\",\n  \"telefono\": \"5512345679\",\n  \"correo\": \"ana.maria@example.com\",\n  \"parentescoId\": 1,\n  \"porcentajeCobertura\": 50.00\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/contratos/{{contrato_id}}/beneficiarios/{{beneficiario_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["contratos", "{{contrato_id}}", "beneficiarios", "{{beneficiario_id}}"]
+            },
+            "description": "**Autenticado.** Mismo body que `POST Agregar Beneficiario`. Reemplaza `{{beneficiario_id}}` por el ID del beneficiario."
+          }
+        },
+        {
+          "name": "DELETE Eliminar Beneficiario",
+          "request": {
+            "method": "DELETE",
+            "url": {
+              "raw": "{{base_url}}/contratos/{{contrato_id}}/beneficiarios/{{beneficiario_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["contratos", "{{contrato_id}}", "beneficiarios", "{{beneficiario_id}}"]
+            },
+            "description": "**Autenticado.** Elimina el beneficiario del contrato. Respuesta: `204 No Content`."
+          }
+        },
+        {
           "name": "POST Crear Contrato",
           "request": {
             "method": "POST",
@@ -902,7 +988,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"personaId\": 1,\n  \"planId\": 1,\n  \"sucursalId\": 1,\n  \"empleadoVendedorId\": null,\n  \"fechaInicio\": \"2026-06-01\",\n  \"precioContratado\": 18000.00,\n  \"mensualidadPactada\": 300.00,\n  \"notas\": \"Notas opcionales\"\n}",
+              "raw": "{\n  \"personaId\": 1,\n  \"planId\": 1,\n  \"sucursalId\": 1,\n  \"empleadoVendedorId\": null,\n  \"fechaInicio\": \"2026-06-01\",\n  \"precioContratado\": 18000.00,\n  \"mensualidadPactada\": 300.00,\n  \"frecuenciaPago\": \"MENSUAL\",\n  \"notas\": \"Notas opcionales\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -918,7 +1004,7 @@
                 "contratos"
               ]
             },
-            "description": "**ADMIN / AGENTE.**\n\nAl crear el contrato, el sistema genera automáticamente los cobros mensuales.\n\nCampos requeridos: `personaId`, `planId`, `fechaInicio`, `precioContratado`, `mensualidadPactada`."
+            "description": "**ADMIN / AGENTE / CLIENTE.**\n\nAl crear el contrato, el sistema genera automáticamente los cobros mensuales.\n\nCampos requeridos: `personaId`, `planId`, `fechaInicio`, `precioContratado`, `mensualidadPactada`.\nOpcional: `frecuenciaPago` (`SEMANAL`, `QUINCENAL`, `MENSUAL`, `ANUAL`)."
           }
         },
         {
@@ -961,6 +1047,42 @@
               ]
             },
             "description": "**ADMIN.** Respuesta: `204 No Content`."
+          }
+        },
+        {
+          "name": "GET Descargar PDF del Contrato",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/contratos/{{contrato_id}}/pdf",
+              "host": ["{{base_url}}"],
+              "path": ["contratos", "{{contrato_id}}", "pdf"]
+            },
+            "description": "**Autenticado.** Descarga el PDF del contrato (`Content-Type: application/pdf`). En Postman usa *Send and Download* para guardarlo."
+          }
+        },
+        {
+          "name": "POST Enviar PDF por Correo",
+          "request": {
+            "method": "POST",
+            "url": {
+              "raw": "{{base_url}}/contratos/{{contrato_id}}/enviar-pdf",
+              "host": ["{{base_url}}"],
+              "path": ["contratos", "{{contrato_id}}", "enviar-pdf"]
+            },
+            "description": "**Autenticado.** Sin body. Envía el PDF del contrato al correo del titular. Respuesta 200: `{ \"mensaje\": \"PDF enviado al correo del titular.\" }`."
+          }
+        },
+        {
+          "name": "GET Verificar Elegibilidad",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/contratos/elegibilidad/{{persona_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["contratos", "elegibilidad", "{{persona_id}}"]
+            },
+            "description": "**Autenticado.** Verifica la elegibilidad de edad de una persona para contratar. Respuesta 200: `{ \"elegible\": \"true\" }`. Si no es elegible, devuelve error de negocio."
           }
         }
       ]
@@ -1126,6 +1248,67 @@
             },
             "description": "**ADMIN / AGENTE.**\n\nCampos requeridos: `contratoId`, `metodoId`, `montoPagado`.\n`cobroId` es opcional pero se recomienda para asociar el pago al cobro correspondiente.\n\nMétodos de pago (metodoId): 1=MERCADO_PAGO, 2=TRANSFERENCIA, 3=OXXO, 4=EFECTIVO."
           }
+        },
+        {
+          "name": "POST Crear Preferencia Mercado Pago",
+          "request": {
+            "method": "POST",
+            "url": {
+              "raw": "{{base_url}}/pagos/cobros/{{cobro_id}}/preferencia-mp",
+              "host": ["{{base_url}}"],
+              "path": ["pagos", "cobros", "{{cobro_id}}", "preferencia-mp"]
+            },
+            "description": "**Autenticado.** Sin body. Crea una preferencia de Checkout Pro para el cobro indicado. Respuesta 200: `{ \"id\", \"initPoint\", \"sandboxInitPoint\" }`. En localhost no se envían back_urls (Mercado Pago las rechaza)."
+          }
+        },
+        {
+          "name": "POST Confirmar Pago Mercado Pago",
+          "request": {
+            "method": "POST",
+            "url": {
+              "raw": "{{base_url}}/pagos/cobros/{{cobro_id}}/confirmar-mp?paymentId=123456789",
+              "host": ["{{base_url}}"],
+              "path": ["pagos", "cobros", "{{cobro_id}}", "confirmar-mp"],
+              "query": [
+                {
+                  "key": "paymentId",
+                  "value": "123456789",
+                  "description": "collection_id (payment ID) que MP incluye en la back_url"
+                }
+              ]
+            },
+            "description": "**Autenticado.** Sin body. Confirmación directa del pago al regresar de Mercado Pago; el frontend envía el `paymentId` (collection_id). Respuesta: `200 OK`."
+          }
+        },
+        {
+          "name": "POST Webhook Mercado Pago",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"type\": \"payment\",\n  \"data\": { \"id\": \"123456789\" }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/pagos/webhook-mp",
+              "host": ["{{base_url}}"],
+              "path": ["pagos", "webhook-mp"]
+            },
+            "description": "**Público (lo invoca Mercado Pago).** Recibe notificaciones de pago. Soporta el formato nuevo (JSON body con `type=payment`) y el IPN legacy (`?topic=payment&id=123`). Valida la firma HMAC-SHA256 si `MP_WEBHOOK_SECRET` está configurado. Siempre responde `200 OK`."
+          }
         }
       ]
     },
@@ -1173,7 +1356,7 @@
                 "no-leidas"
               ]
             },
-            "description": "**Autenticado.** Respuesta: `{ \"count\": 5 }`."
+            "description": "**Autenticado.** Respuesta: número plano (Long), ej. `5`."
           }
         },
         {
@@ -1208,7 +1391,99 @@
       ]
     },
     {
-      "name": "09 – Usuarios",
+      "name": "09 – Documentos",
+      "description": "Carga y consulta de documentos de identidad de una persona (INE, CURP, comprobante de domicilio, acta de nacimiento, RFC) y video de consentimiento. Formatos permitidos: JPG, PNG, WEBP, PDF. Requieren token.",
+      "item": [
+        {
+          "name": "POST Subir Documento",
+          "request": {
+            "method": "POST",
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "clave",
+                  "value": "INE",
+                  "type": "text",
+                  "description": "INE | CURP | COMPROBANTE_DOM | ACTA_NAC | RFC"
+                },
+                {
+                  "key": "archivo",
+                  "type": "file",
+                  "description": "JPG, PNG, WEBP o PDF"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{base_url}}/documentos/persona/{{persona_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["documentos", "persona", "{{persona_id}}"]
+            },
+            "description": "**Autenticado.** `Content-Type: multipart/form-data`. Sube o reemplaza un documento de la persona. Campos: `clave` (texto) y `archivo` (file). Respuesta 200: `{ \"clave\", \"nombre\", \"url\" }`."
+          }
+        },
+        {
+          "name": "GET Documentos de Persona",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/documentos/persona/{{persona_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["documentos", "persona", "{{persona_id}}"]
+            },
+            "description": "**Autenticado.** Lista los documentos activos de la persona: `[{ \"id\", \"clave\", \"nombre\", \"url\", \"mime\" }]`."
+          }
+        },
+        {
+          "name": "GET Documentos Pendientes",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/documentos/persona/{{persona_id}}/pendientes",
+              "host": ["{{base_url}}"],
+              "path": ["documentos", "persona", "{{persona_id}}", "pendientes"]
+            },
+            "description": "**Autenticado.** Indica qué tipos requeridos (INE, CURP, COMPROBANTE_DOM, ACTA_NAC, RFC) faltan para crear contrato. Respuesta 200: `{ \"completo\": false, \"faltantes\": [\"CURP\", ...] }`."
+          }
+        },
+        {
+          "name": "POST Subir Video Consentimiento",
+          "request": {
+            "method": "POST",
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "video",
+                  "type": "file",
+                  "description": "Video WEBM, MP4 u OGV"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{base_url}}/documentos/persona/{{persona_id}}/video-consentimiento",
+              "host": ["{{base_url}}"],
+              "path": ["documentos", "persona", "{{persona_id}}", "video-consentimiento"]
+            },
+            "description": "**Autenticado.** `Content-Type: multipart/form-data`. Guarda el video de consentimiento de la persona. Campo: `video` (file – WEBM/MP4/OGV). Respuesta 200: `{ \"url\": \"...\" }`."
+          }
+        },
+        {
+          "name": "DELETE Eliminar Documento",
+          "request": {
+            "method": "DELETE",
+            "url": {
+              "raw": "{{base_url}}/documentos/persona/{{persona_id}}/clave/INE",
+              "host": ["{{base_url}}"],
+              "path": ["documentos", "persona", "{{persona_id}}", "clave", "INE"]
+            },
+            "description": "**Autenticado.** Desactiva y borra el archivo de todos los documentos activos de ese tipo para la persona. Reemplaza `INE` por la clave deseada. Respuesta: `204 No Content`."
+          }
+        }
+      ]
+    },
+    {
+      "name": "10 – Usuarios",
       "description": "Gestión de cuentas de acceso. El alta se realiza por `POST /auth/registro`.",
       "item": [
         {
@@ -1243,7 +1518,7 @@
       ]
     },
     {
-      "name": "10 – OCR – Extracción de Documentos",
+      "name": "11 – OCR – Extracción de Documentos",
       "description": "Extracción de datos de identidad mediante Google Gemini. Envía imágenes de INE y/o documentos fiscales.",
       "item": [
         {
@@ -1269,7 +1544,147 @@
       ]
     },
     {
-      "name": "11 – Flujo Completo (secuencia recomendada)",
+      "name": "12 – Panel Administrativo",
+      "description": "Estadísticas del Panel Administrativo. **Requieren rol ADMIN o AGENTE.** Solo lectura (GET sin body).",
+      "item": [
+        {
+          "name": "GET Dashboard",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/panel/dashboard",
+              "host": ["{{base_url}}"],
+              "path": ["panel", "dashboard"]
+            },
+            "description": "**ADMIN / AGENTE.** Indicadores principales del panel.\n\nRespuesta 200:\n```json\n{\n  \"ingresosMensuales\": 87850.00,\n  \"contratosActivos\": 251,\n  \"pagosPendientes\": 34,\n  \"montoPendiente\": 19720.00,\n  \"renovaciones\": 9\n}\n```\n\n- `ingresosMensuales`: suma de pagos del mes en curso\n- `contratosActivos`: contratos con estado VIGENTE\n- `pagosPendientes` / `montoPendiente`: cobros pendientes o vencidos\n- `renovaciones`: contratos que vencen en los próximos 30 días"
+          }
+        },
+        {
+          "name": "GET Finanzas",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/panel/finanzas",
+              "host": ["{{base_url}}"],
+              "path": ["panel", "finanzas"]
+            },
+            "description": "**ADMIN / AGENTE.** Indicadores de la pestaña Finanzas.\n\nRespuesta 200:\n```json\n{\n  \"sociosMorosos\": 18,\n  \"montoVencido\": 31320.00,\n  \"serviciosEnProceso\": 4,\n  \"serviciosMes\": 2,\n  \"pagosHoy\": 7,\n  \"ingresosHoy\": 4060.00,\n  \"contratosVigentes\": 251,\n  \"contratosSuspendidos\": 6,\n  \"contratosVencidos\": 3,\n  \"contratosCancelados\": 12\n}\n```"
+          }
+        }
+      ]
+    },
+    {
+      "name": "12.5 – Tarifas y Planes",
+      "description": "Gestión de tarifas por tipo de plan. **Requieren rol ADMIN.**",
+      "item": [
+        {
+          "name": "PATCH Actualizar Aportación Mutualista",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"aportacionAnual\": 1200.00\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{base_url}}/tarifas/mutualista",
+              "host": ["{{base_url}}"],
+              "path": ["tarifas", "mutualista"]
+            },
+            "description": "**ADMIN.** Actualiza la aportación anual del plan mutualista. La mensualidad se recalcula automáticamente (anual ÷ 12). Respuesta 200: `{ \"id\", \"aportacionAnual\", \"mensualidad\" }`."
+          }
+        },
+        {
+          "name": "GET Planes por Tipo",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/tarifas/planes?tipo=HUMANOS",
+              "host": ["{{base_url}}"],
+              "path": ["tarifas", "planes"],
+              "query": [{ "key": "tipo", "value": "HUMANOS", "description": "MUTUALISTA | HUMANOS | MASCOTAS" }]
+            },
+            "description": "**ADMIN.** Lista todos los planes de un tipo (incluye inactivos)."
+          }
+        },
+        {
+          "name": "POST Crear Plan",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Plan Estándar\",\n  \"descripcion\": \"Descripción del plan\",\n  \"precioTotal\": 2500.00,\n  \"mensualidad\": 2500.00,\n  \"duracionMeses\": 1,\n  \"numeroBeneficiarios\": 1,\n  \"articuloIds\": [12, 13, 14, 15]\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{base_url}}/tarifas/planes?tipo=MASCOTAS",
+              "host": ["{{base_url}}"],
+              "path": ["tarifas", "planes"],
+              "query": [{ "key": "tipo", "value": "MASCOTAS", "description": "HUMANOS | MASCOTAS" }]
+            },
+            "description": "**ADMIN.** Crea un plan de HUMANOS o MASCOTAS. Para MASCOTAS, `numeroBeneficiarios` = cantidad de mascotas. `articuloIds` son los IDs del catálogo de servicios incluidos. Respuesta: `201 Created`."
+          }
+        },
+        {
+          "name": "PUT Actualizar Plan",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Plan Estándar Actualizado\",\n  \"descripcion\": \"Nueva descripción\",\n  \"precioTotal\": 2600.00,\n  \"mensualidad\": 2600.00,\n  \"duracionMeses\": 1,\n  \"numeroBeneficiarios\": 2,\n  \"articuloIds\": [12, 13, 14, 15]\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{base_url}}/tarifas/planes/{{plan_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["tarifas", "planes", "{{plan_id}}"]
+            },
+            "description": "**ADMIN.** Actualiza un plan existente (precio, duración, beneficiarios y artículos incluidos)."
+          }
+        },
+        {
+          "name": "DELETE Desactivar Plan",
+          "request": {
+            "method": "DELETE",
+            "url": {
+              "raw": "{{base_url}}/tarifas/planes/{{plan_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["tarifas", "planes", "{{plan_id}}"]
+            },
+            "description": "**ADMIN.** Soft delete del plan. Respuesta: `204 No Content`."
+          }
+        },
+        {
+          "name": "PATCH Activar Plan",
+          "request": {
+            "method": "PATCH",
+            "url": {
+              "raw": "{{base_url}}/tarifas/planes/{{plan_id}}/activar",
+              "host": ["{{base_url}}"],
+              "path": ["tarifas", "planes", "{{plan_id}}", "activar"]
+            },
+            "description": "**ADMIN.** Reactiva un plan desactivado. Sin body. Respuesta: `204 No Content`."
+          }
+        },
+        {
+          "name": "GET Catálogo de Artículos",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/tarifas/articulos",
+              "host": ["{{base_url}}"],
+              "path": ["tarifas", "articulos"]
+            },
+            "description": "**ADMIN.** Lista los artículos/servicios del catálogo activos. Úsalos para los checkboxes de servicios en planes de mascotas. Respuesta: `[{ \"id\", \"nombre\", \"descripcion\", \"categoria\" }]`."
+          }
+        }
+      ]
+    },
+    {
+      "name": "13 – Flujo Completo (secuencia recomendada)",
       "description": "Ejecuta estos requests en orden. Cada uno tiene un script que extrae el ID de la respuesta y lo guarda en una variable de colección para usarlo en el siguiente paso.",
       "item": [
         {
@@ -1486,7 +1901,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"personaId\": {{persona_id}},\n  \"planId\": {{plan_id}},\n  \"sucursalId\": {{sucursal_id}},\n  \"empleadoVendedorId\": null,\n  \"fechaInicio\": \"2026-06-01\",\n  \"precioContratado\": 18000.00,\n  \"mensualidadPactada\": 300.00,\n  \"notas\": \"Contrato de prueba\"\n}",
+              "raw": "{\n  \"personaId\": {{persona_id}},\n  \"planId\": {{plan_id}},\n  \"sucursalId\": {{sucursal_id}},\n  \"empleadoVendedorId\": null,\n  \"fechaInicio\": \"2026-06-01\",\n  \"precioContratado\": 18000.00,\n  \"mensualidadPactada\": 300.00,\n  \"frecuenciaPago\": \"MENSUAL\",\n  \"notas\": \"Contrato de prueba\"\n}",
               "options": {
                 "raw": {
                   "language": "json"

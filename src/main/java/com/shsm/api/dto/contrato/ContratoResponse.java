@@ -21,6 +21,7 @@ public record ContratoResponse(
         LocalDate fechaVencimiento,
         BigDecimal precioContratado,
         BigDecimal mensualidadPactada,
+        String frecuenciaPago,
         String notas,
         Boolean activo,
         OffsetDateTime createdAt
@@ -43,6 +44,7 @@ public record ContratoResponse(
                 c.getFechaVencimiento(),
                 c.getPrecioContratado(),
                 c.getMensualidadPactada(),
+                c.getFrecuenciaPago(),
                 c.getNotas(),
                 c.getActivo(),
                 c.getCreatedAt()

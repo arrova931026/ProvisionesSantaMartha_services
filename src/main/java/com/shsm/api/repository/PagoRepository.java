@@ -39,4 +39,18 @@ public interface PagoRepository extends JpaRepository<Pago, Long> {
             """)
     List<Pago> findByRangoFechas(@Param("inicio") OffsetDateTime inicio,
                                   @Param("fin") OffsetDateTime fin);
+
+    @Query("""
+            SELECT COALESCE(SUM(p.montoPagado), 0) FROM Pago p
+            WHERE p.fechaPago BETWEEN :inicio AND :fin
+            """)
+    BigDecimal sumMontoBetween(@Param("inicio") OffsetDateTime inicio,
+                               @Param("fin") OffsetDateTime fin);
+
+    @Query("""
+            SELECT COUNT(p) FROM Pago p
+            WHERE p.fechaPago BETWEEN :inicio AND :fin
+            """)
+    long countBetween(@Param("inicio") OffsetDateTime inicio,
+                      @Param("fin") OffsetDateTime fin);
 }

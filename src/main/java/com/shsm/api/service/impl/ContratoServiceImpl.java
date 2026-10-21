@@ -15,6 +15,7 @@ import com.shsm.api.exception.BusinessException;
 import com.shsm.api.exception.ResourceNotFoundException;
 import com.shsm.api.repository.*;
 import com.shsm.api.service.ContratoService;
+import com.shsm.api.service.CalendarioCuotas;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -22,11 +23,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
-import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
 import java.time.Period;
-import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -76,17 +75,24 @@ public class ContratoServiceImpl implements ContratoService {
         Persona persona = personaRepository.findById(req.personaId())
                 .orElseThrow(() -> new ResourceNotFoundException("Persona", req.personaId()));
 
+        var plan = planRepository.findById(req.planId())
+            .orElseThrow(() -> new ResourceNotFoundException("PlanFunerario", req.planId()));
+
         // ── Validación de edad máxima (64 años 11 meses) ──────────────────────
-        validarEdadPersona(persona);
+        if (!"MASCOTAS".equals(plan.getTipoPlan())) {
+            validarEdadPersona(persona);
+        }
 
         // ── Validación de datos completos ─────────────────────────────────────
         validarDatosCompletos(persona);
 
         contrato.setPersona(persona);
-
-        var plan = planRepository.findById(req.planId())
-                .orElseThrow(() -> new ResourceNotFoundException("PlanFunerario", req.planId()));
         contrato.setPlan(plan);
+
+        String frecuenciaPago = req.frecuenciaPago() != null ? req.frecuenciaPago() : "MENSUAL";
+        if (!"MUTUALISTA".equals(plan.getTipoPlan()) && !"MENSUAL".equals(frecuenciaPago)) {
+            throw new BusinessException("Este plan solo permite pago mensual.");
+        }
 
         if (req.sucursalId() != null) {
             contrato.setSucursal(sucursalRepository.findById(req.sucursalId())
@@ -107,6 +113,7 @@ public class ContratoServiceImpl implements ContratoService {
                 .plusMonths(plan.getDuracionMeses()));
         contrato.setPrecioContratado(req.precioContratado());
         contrato.setMensualidadPactada(req.mensualidadPactada());
+        contrato.setFrecuenciaPago(frecuenciaPago);
         contrato.setNotas(req.notas());
         contrato.setNumeroContrato(generarNumeroContrato());
 
@@ -306,12 +313,14 @@ public class ContratoServiceImpl implements ContratoService {
         EstadoPago pendiente = estadoPagoRepository.findByClave("PENDIENTE")
                 .orElseThrow(() -> new BusinessException("Estado PENDIENTE no encontrado en catálogo"));
 
-        for (int i = 1; i <= meses; i++) {
+        List<java.time.LocalDate> fechas = CalendarioCuotas.generar(
+            contrato.getFechaInicio(), meses, contrato.getFrecuenciaPago());
+        for (int i = 0; i < fechas.size(); i++) {
             CobroProgramado cobro = new CobroProgramado();
             cobro.setContrato(contrato);
-            cobro.setNumeroMensualidad((short) i);
-            cobro.setFechaProgramada(contrato.getFechaInicio().plusMonths(i - 1));
-            cobro.setFechaLimite(contrato.getFechaInicio().plusMonths(i - 1).plusDays(10));
+            cobro.setNumeroMensualidad((short) (i + 1));
+            cobro.setFechaProgramada(fechas.get(i));
+            cobro.setFechaLimite(fechas.get(i).plusDays(10));
             cobro.setMonto(contrato.getMensualidadPactada());
             cobro.setEstado(pendiente);
             cobroProgramadoRepository.save(cobro);

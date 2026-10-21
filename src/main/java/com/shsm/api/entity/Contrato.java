@@ -50,6 +50,9 @@ public class Contrato extends BaseEntity {
     @Column(name = "mensualidad_pactada", nullable = false, precision = 10, scale = 2)
     private BigDecimal mensualidadPactada;
 
+    @Column(name = "frecuencia_pago", nullable = false, length = 15)
+    private String frecuenciaPago = "MENSUAL";
+
     @Column(name = "notas", columnDefinition = "TEXT")
     private String notas;
 

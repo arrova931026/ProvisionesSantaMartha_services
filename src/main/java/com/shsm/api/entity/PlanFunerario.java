@@ -21,6 +21,9 @@ public class PlanFunerario extends BaseEntity {
     @Column(name = "descripcion", columnDefinition = "TEXT")
     private String descripcion;
 
+    @Column(name = "tipo_plan", nullable = false, length = 20)
+    private String tipoPlan = "HUMANOS";
+
     @Column(name = "precio_total", nullable = false, precision = 12, scale = 2)
     private BigDecimal precioTotal;
 
@@ -32,6 +35,10 @@ public class PlanFunerario extends BaseEntity {
 
     @Column(name = "numero_beneficiarios", nullable = false)
     private Short numeroBeneficiarios = 1;
+
+    /** % de aumento sobre el precio base por cada mascota adicional (solo planes MASCOTAS). */
+    @Column(name = "porcentaje_extra_mascota", nullable = false, precision = 5, scale = 2)
+    private BigDecimal porcentajeExtraMascota = BigDecimal.ZERO;
 
     @JsonIgnore
     @OneToMany(mappedBy = "plan", cascade = CascadeType.ALL, orphanRemoval = true)

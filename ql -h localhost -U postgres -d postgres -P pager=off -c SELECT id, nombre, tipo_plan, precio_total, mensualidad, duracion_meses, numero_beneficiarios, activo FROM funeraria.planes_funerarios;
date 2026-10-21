@@ -1,0 +1,8 @@
+ id |     nombre     | tipo_plan | precio_total | mensualidad | duracion_meses | numero_beneficiarios | activo 
+----+----------------+-----------+--------------+-------------+----------------+----------------------+--------
+  1 | Plan Familiar  | HUMANOS   |     45000.00 |      450.00 |            100 |                    4 | t
+  2 | Plan Cremación | HUMANOS   |     22000.00 |      275.00 |             80 |                    1 | t
+  3 | Plan Básico    | HUMANOS   |     18000.00 |      300.00 |             60 |                    1 | t
+  4 | Plan Premium   | HUMANOS   |     80000.00 |      800.00 |            100 |                    6 | t
+(4 rows)
+

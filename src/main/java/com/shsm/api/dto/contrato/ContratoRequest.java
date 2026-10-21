@@ -27,5 +27,8 @@ public record ContratoRequest(
         @DecimalMin(value = "0.01", message = "La mensualidad debe ser mayor a 0")
         BigDecimal mensualidadPactada,
 
+        @Pattern(regexp = "SEMANAL|QUINCENAL|MENSUAL|ANUAL", message = "La frecuencia de pago no es válida")
+        String frecuenciaPago,
+
         String notas
 ) {}
