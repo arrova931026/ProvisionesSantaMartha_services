@@ -138,6 +138,7 @@ CREATE TABLE personas (
     rfc             VARCHAR(13)     UNIQUE,
     telefono        VARCHAR(20),
     telefono_alt    VARCHAR(20),
+    whatsapp_opt_in BOOLEAN         NOT NULL DEFAULT FALSE,
     correo          VARCHAR(254)    UNIQUE,
     calle           VARCHAR(200),
     numero_ext      VARCHAR(20),
@@ -423,6 +424,7 @@ CREATE TABLE notificaciones (
     canal           VARCHAR(30)     NOT NULL DEFAULT 'APP',  -- 'APP', 'EMAIL', 'SMS', 'PUSH'
     enviada         BOOLEAN         NOT NULL DEFAULT FALSE,
     fecha_envio     TIMESTAMPTZ,
+    referencia_externa VARCHAR(120) UNIQUE,
     created_at      TIMESTAMPTZ     NOT NULL DEFAULT NOW()
 );
 

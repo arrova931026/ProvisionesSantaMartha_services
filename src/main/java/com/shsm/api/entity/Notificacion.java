@@ -40,6 +40,9 @@ public class Notificacion {
 
     @Column(name = "fecha_envio")
     private OffsetDateTime fechaEnvio;
+    
+    @Column(name = "referencia_externa", length = 120, unique = true)
+    private String referenciaExterna;
 
     @Column(name = "created_at", nullable = false, updatable = false)
     private OffsetDateTime createdAt;

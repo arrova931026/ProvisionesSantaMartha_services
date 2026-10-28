@@ -43,6 +43,9 @@ public class Persona extends BaseEntity {
 
     @Column(name = "telefono_alt", length = 20)
     private String telefonoAlt;
+    
+    @Column(name = "whatsapp_opt_in", nullable = false)
+    private Boolean whatsappOptIn = false;
 
     @Column(name = "correo", length = 254, unique = true)
     private String correo;

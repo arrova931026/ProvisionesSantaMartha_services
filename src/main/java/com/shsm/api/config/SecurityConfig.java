@@ -47,6 +47,8 @@ public class SecurityConfig {
                         .requestMatchers("/auth/**").permitAll()
                         .requestMatchers("/actuator/health", "/actuator/info").permitAll()
                         .requestMatchers(HttpMethod.POST, "/pagos/webhook-mp").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/webhooks/whatsapp").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/webhooks/whatsapp").permitAll()
                         .requestMatchers(HttpMethod.GET, "/catalogos/**").authenticated()
                         .requestMatchers("/admin/**").hasRole("ADMIN")
                         .requestMatchers("/profile_pictures/**").permitAll()

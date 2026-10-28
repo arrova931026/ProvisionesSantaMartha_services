@@ -16,4 +16,9 @@ public interface TokenSesionRepository extends JpaRepository<TokenSesion, Long> 
     @Modifying
     @Query("DELETE FROM TokenSesion t WHERE t.expiraEn < :now OR t.usado = true")
     void eliminarExpirados(@Param("now") OffsetDateTime now);
+
+    /** Marca como usados todos los tokens REFRESH activos del usuario (p. ej. tras restablecer contraseña). */
+    @Modifying
+    @Query("UPDATE TokenSesion t SET t.usado = true WHERE t.usuario.id = :usuarioId AND t.tipo = 'REFRESH' AND t.usado = false")
+    void revocarRefreshesDeUsuario(@Param("usuarioId") Long usuarioId);
 }

@@ -56,22 +56,13 @@ public class DocumentoController {
         }
 
         String ext = resolverExtension(mime, archivo.getOriginalFilename());
-
-        // Eliminar versiones previas del mismo tipo
-        for (String e : List.of("jpg","jpeg","png","webp","pdf")) {
-            fileStorageService.deleteDocument(personaId + "/" + clave.toUpperCase() + "." + e);
-        }
-
         String relativePath = personaId + "/" + clave.toUpperCase() + "." + ext;
+
+        // 1) Guardar el archivo nuevo PRIMERO — si falla, el documento anterior queda intacto
         String url = fileStorageService.storeDocument(archivo.getInputStream(), relativePath);
 
-        // Actualizar o crear registro en BD
-        List<Documento> existentes = documentoRepository.findByPersonaIdAndActivoTrue(personaId)
-                .stream().filter(d -> d.getTipo().getClave().equals(clave.toUpperCase())).toList();
-        existentes.forEach(d -> { d.setActivo(false); documentoRepository.save(d); });
-
+        // 2) Persistir el registro en BD
         String nombreArchivo = clave.toUpperCase() + "." + ext;
-
         Documento doc = new Documento();
         doc.setPersona(persona);
         doc.setTipo(tipo);
@@ -80,6 +71,18 @@ public class DocumentoController {
         doc.setMimeType(mime);
         doc.setTamanoBytes(archivo.getSize());
         documentoRepository.save(doc);
+
+        // 3) Solo si lo anterior tuvo éxito: desactivar versiones previas y limpiar archivos viejos
+        List<Documento> existentes = documentoRepository.findByPersonaIdAndActivoTrue(personaId)
+                .stream()
+                .filter(d -> d.getTipo().getClave().equals(clave.toUpperCase()) && !d.getId().equals(doc.getId()))
+                .toList();
+        existentes.forEach(d -> { d.setActivo(false); documentoRepository.save(d); });
+        for (String e : List.of("jpg","jpeg","png","webp","pdf")) {
+            if (!e.equals(ext)) {
+                fileStorageService.deleteDocument(personaId + "/" + clave.toUpperCase() + "." + e);
+            }
+        }
 
         log.info("Documento {} subido para persona {} → {}", clave, personaId, url);
         return ResponseEntity.ok(Map.of(

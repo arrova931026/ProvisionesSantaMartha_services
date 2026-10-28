@@ -1,5 +1,6 @@
 package com.shsm.api.controller;
 
+import com.shsm.api.dto.notificacion.WhatsAppPreferenceRequest;
 import com.shsm.api.entity.Notificacion;
 import com.shsm.api.exception.ResourceNotFoundException;
 import com.shsm.api.repository.NotificacionRepository;
@@ -10,6 +11,8 @@ import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.transaction.annotation.Transactional;
+import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.*;
 
 import com.shsm.api.repository.UsuarioRepository;
@@ -21,6 +24,28 @@ public class NotificacionController {
 
     private final NotificacionRepository notificacionRepository;
     private final UsuarioRepository usuarioRepository;
+
+    @GetMapping("/whatsapp-preferencia")
+    @Transactional(readOnly = true)
+    public ResponseEntity<java.util.Map<String, Boolean>> obtenerPreferenciaWhatsApp(
+            @AuthenticationPrincipal UserDetails userDetails) {
+        var usuario = usuarioRepository.findByUsername(userDetails.getUsername())
+                .orElseThrow(() -> new ResourceNotFoundException("Usuario no encontrado"));
+        return ResponseEntity.ok(java.util.Map.of(
+                "habilitada", Boolean.TRUE.equals(usuario.getPersona().getWhatsappOptIn())));
+    }
+
+    @PutMapping("/whatsapp-preferencia")
+    @Transactional
+    public ResponseEntity<java.util.Map<String, Boolean>> actualizarPreferenciaWhatsApp(
+            @AuthenticationPrincipal UserDetails userDetails,
+            @Valid @RequestBody WhatsAppPreferenceRequest request) {
+        var usuario = usuarioRepository.findByUsername(userDetails.getUsername())
+                .orElseThrow(() -> new ResourceNotFoundException("Usuario no encontrado"));
+        usuario.getPersona().setWhatsappOptIn(request.habilitada());
+        usuarioRepository.save(usuario);
+        return ResponseEntity.ok(java.util.Map.of("habilitada", request.habilitada()));
+    }
 
     @GetMapping
     public ResponseEntity<Page<Notificacion>> listar(

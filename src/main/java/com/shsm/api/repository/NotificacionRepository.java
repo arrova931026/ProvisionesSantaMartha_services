@@ -12,6 +12,8 @@ public interface NotificacionRepository extends JpaRepository<Notificacion, Long
 
     Page<Notificacion> findByUsuarioIdOrderByCreatedAtDesc(Long usuarioId, Pageable pageable);
 
+    java.util.Optional<Notificacion> findByReferenciaExterna(String referenciaExterna);
+
     long countByUsuarioIdAndLeidaFalse(Long usuarioId);
 
     @Modifying

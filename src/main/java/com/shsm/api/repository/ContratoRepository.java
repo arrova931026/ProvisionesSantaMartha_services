@@ -48,4 +48,15 @@ public interface ContratoRepository extends JpaRepository<Contrato, Long> {
               AND cp.fechaProgramada < :hoy
             """)
     long countMorosos(@Param("hoy") java.time.LocalDate hoy);
+
+    /** Contratos vigentes de una persona (para el modal de eliminación), con el plan cargado. */
+    @Query("""
+            SELECT c FROM Contrato c
+            JOIN FETCH c.plan
+            WHERE c.persona.id = :personaId
+              AND c.activo = true
+              AND c.deletedAt IS NULL
+              AND c.estado.clave = 'VIGENTE'
+            """)
+    java.util.List<Contrato> findVigentesByPersonaId(@Param("personaId") Long personaId);
 }

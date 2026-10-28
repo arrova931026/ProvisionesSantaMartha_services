@@ -74,6 +74,19 @@ app:
     client-id: ${GOOGLE_CLIENT_ID}
   mail:
     from: ${MAIL_FROM}
+  whatsapp:
+    enabled: ${WHATSAPP_ENABLED:false}
+    graph-api-version: ${WHATSAPP_GRAPH_API_VERSION:v23.0}
+    phone-number-id: ${WHATSAPP_PHONE_NUMBER_ID:}
+    access-token: ${WHATSAPP_ACCESS_TOKEN:}
+    language: ${WHATSAPP_TEMPLATE_LANGUAGE:es_MX}
+    reminder-days-before: ${WHATSAPP_REMINDER_DAYS_BEFORE:5}
+    reminder-cron: ${WHATSAPP_REMINDER_CRON:0 0 10 * * *}
+    time-zone: ${WHATSAPP_TIME_ZONE:America/Mexico_City}
+    template-upcoming: ${WHATSAPP_TEMPLATE_UPCOMING:shsm_pago_proximo}
+    template-overdue: ${WHATSAPP_TEMPLATE_OVERDUE:shsm_pago_vencido}
+    webhook-verify-token: ${WHATSAPP_WEBHOOK_VERIFY_TOKEN:}
+    app-secret: ${WHATSAPP_APP_SECRET:}
 
 gemini:
   api-key: ${GEMINI_API_KEY}

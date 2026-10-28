@@ -26,6 +26,37 @@ public interface CobroProgramadoRepository extends JpaRepository<CobroProgramado
               AND cp.fechaProgramada <= :fecha
             """)
     List<CobroProgramado> findPendientesHastaFecha(@Param("fecha") LocalDate fecha);
+    
+    @Query("""
+            SELECT cp FROM CobroProgramado cp
+            JOIN FETCH cp.contrato c
+            JOIN FETCH c.persona p
+            JOIN FETCH c.plan
+            WHERE cp.estado.clave = 'PENDIENTE'
+              AND cp.fechaLimite BETWEEN :desde AND :hasta
+              AND c.activo = true
+              AND c.deletedAt IS NULL
+              AND c.estado.clave = 'VIGENTE'
+              AND p.activo = true
+              AND p.deletedAt IS NULL
+            """)
+    List<CobroProgramado> findCobrosProximosParaWhatsApp(@Param("desde") LocalDate desde,
+                               @Param("hasta") LocalDate hasta);
+
+    @Query("""
+            SELECT cp FROM CobroProgramado cp
+            JOIN FETCH cp.contrato c
+            JOIN FETCH c.persona p
+            JOIN FETCH c.plan
+            WHERE cp.estado.clave IN ('PENDIENTE', 'VENCIDO')
+              AND cp.fechaLimite < :fecha
+              AND c.activo = true
+              AND c.deletedAt IS NULL
+              AND c.estado.clave = 'VIGENTE'
+              AND p.activo = true
+              AND p.deletedAt IS NULL
+            """)
+    List<CobroProgramado> findCobrosVencidosParaWhatsApp(@Param("fecha") LocalDate fecha);
 
     @Query("""
             SELECT COUNT(cp) FROM CobroProgramado cp

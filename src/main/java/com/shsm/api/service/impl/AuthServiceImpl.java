@@ -293,9 +293,7 @@ public class AuthServiceImpl implements AuthService {
         // Siempre responde 204 para no revelar si el correo existe (anti-enumeración)
         personaRepository.findByCorreo(request.correo()).ifPresentOrElse(persona -> {
             log.info("Persona encontrada con id={} para correo={}", persona.getId(), request.correo());
-            usuarioRepository.findAll().stream()
-                    .filter(u -> u.getPersona().getId().equals(persona.getId()))
-                    .findFirst()
+            usuarioRepository.findByPersonaId(persona.getId())
                     .ifPresentOrElse(usuario -> {
                         log.info("Usuario encontrado: {}", usuario.getUsername());
                         String token = UUID.randomUUID().toString();
@@ -332,6 +330,9 @@ public class AuthServiceImpl implements AuthService {
         ts.getUsuario().setPasswordHash(passwordEncoder.encode(request.nuevaPassword()));
         ts.getUsuario().setRequiereCambioPw(false);
         usuarioRepository.save(ts.getUsuario());
+
+        // Revocar todas las sesiones activas: obligan a iniciar sesión con la nueva contraseña
+        tokenSesionRepository.revocarRefreshesDeUsuario(ts.getUsuario().getId());
 
         ts.setUsado(true);
         tokenSesionRepository.save(ts);
