@@ -1,6 +1,8 @@
 package com.shsm.api.dto.contrato;
 
 import jakarta.validation.constraints.*;
+import jakarta.validation.Valid;
+import com.shsm.api.entity.MascotaContrato;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -19,16 +21,16 @@ public record ContratoRequest(
         @NotNull(message = "La fecha de inicio es requerida")
         LocalDate fechaInicio,
 
-        @NotNull(message = "El precio contratado es requerido")
         @DecimalMin(value = "0.01", message = "El precio debe ser mayor a 0")
         BigDecimal precioContratado,
 
-        @NotNull(message = "La mensualidad pactada es requerida")
         @DecimalMin(value = "0.01", message = "La mensualidad debe ser mayor a 0")
         BigDecimal mensualidadPactada,
 
         @Pattern(regexp = "SEMANAL|QUINCENAL|MENSUAL|ANUAL", message = "La frecuencia de pago no es válida")
         String frecuenciaPago,
 
-        String notas
+        String notas,
+
+        @Valid MascotaContrato mascota
 ) {}

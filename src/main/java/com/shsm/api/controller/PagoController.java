@@ -52,6 +52,7 @@ public class PagoController {
     /** Crea una preferencia de Checkout Pro para el cobro indicado */
     @Transactional(readOnly = true)
     @PostMapping("/cobros/{cobroId}/preferencia-mp")
+    @PreAuthorize("@acceso.esCobroPropio(#cobroId)")
     public ResponseEntity<Map<String, String>> crearPreferenciaMP(
             @PathVariable Long cobroId) {
 
@@ -110,6 +111,7 @@ public class PagoController {
      * Más confiable que esperar el webhook en caso de delays.
      */
     @PostMapping("/cobros/{cobroId}/confirmar-mp")
+    @PreAuthorize("@acceso.esCobroPropio(#cobroId)")
     public ResponseEntity<Void> confirmarPagoMP(
             @PathVariable Long cobroId,
             @RequestParam String paymentId) {

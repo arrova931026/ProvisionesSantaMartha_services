@@ -16,7 +16,9 @@ public record PlanFunerarioResponse(
         Short numeroBeneficiarios,
         BigDecimal porcentajeExtraMascota,
         Boolean activo,
-        List<ArticuloIncluido> articulosIncluidos
+        List<ArticuloIncluido> articulosIncluidos,
+        BigDecimal aportacionDiaria,
+        String condiciones
 ) {
     public static PlanFunerarioResponse from(PlanFunerario plan) {
         List<ArticuloIncluido> incluidos = plan.getArticulos().stream()
@@ -28,7 +30,8 @@ public record PlanFunerarioResponse(
         return new PlanFunerarioResponse(
                 plan.getId(), plan.getNombre(), plan.getDescripcion(), plan.getTipoPlan(),
                 plan.getPrecioTotal(), plan.getMensualidad(), plan.getDuracionMeses(),
-                plan.getNumeroBeneficiarios(), plan.getPorcentajeExtraMascota(), plan.getActivo(), incluidos);
+                plan.getNumeroBeneficiarios(), plan.getPorcentajeExtraMascota(), plan.getActivo(), incluidos,
+                plan.getAportacionDiaria(), plan.getCondiciones());
     }
 
     public record ArticuloIncluido(String nombre, String descripcion, String modalidad) {}

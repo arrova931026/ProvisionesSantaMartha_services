@@ -24,6 +24,30 @@ public class PlanFunerario extends BaseEntity {
     @Column(name = "tipo_plan", nullable = false, length = 20)
     private String tipoPlan = "HUMANOS";
 
+    @Column(name = "aportacion_diaria", precision = 10, scale = 2)
+    private BigDecimal aportacionDiaria;
+
+    @Column(name = "condiciones", columnDefinition = "TEXT")
+    private String condiciones;
+
+    public void aplicarMutualistaMascotas() {
+        aportacionDiaria = BigDecimal.ONE;
+        precioTotal = new BigDecimal("365.00");
+        mensualidad = new BigDecimal("30.42");
+        duracionMeses = 12;
+        numeroBeneficiarios = 0;
+        porcentajeExtraMascota = BigDecimal.ZERO;
+        actualizarCondicionesMutualistaMascotas();
+    }
+
+    public void actualizarCondicionesMutualistaMascotas() {
+        condiciones = "Incluye recoleccion dentro de cobertura, traslado, cremacion, urna basica y entrega de cenizas dentro de cobertura. "
+                + "El servicio anticipado requiere liquidar las aportaciones pendientes hasta completar el precio total del plan. "
+                + "El incumplimiento de las aportaciones puede suspender el servicio hasta regularizarlo. "
+                + "No incluye urnas especiales o personalizadas, ceremonias, velacion ni traslados fuera de cobertura. "
+                + "Pagos mediante deposito bancario, establecimientos autorizados, transferencia u otros medios autorizados por la empresa.";
+    }
+
     @Column(name = "precio_total", nullable = false, precision = 12, scale = 2)
     private BigDecimal precioTotal;
 

@@ -56,6 +56,15 @@ public class Contrato extends BaseEntity {
     @Column(name = "notas", columnDefinition = "TEXT")
     private String notas;
 
+    @Embedded
+    private MascotaContrato mascota;
+
+    @Column(name = "aportacion_diaria", precision = 10, scale = 2)
+    private BigDecimal aportacionDiaria;
+
+    @Column(name = "condiciones", columnDefinition = "TEXT")
+    private String condiciones;
+
     @Column(name = "deleted_at")
     private OffsetDateTime deletedAt;
 }

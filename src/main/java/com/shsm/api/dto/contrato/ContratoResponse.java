@@ -1,6 +1,7 @@
 package com.shsm.api.dto.contrato;
 
 import com.shsm.api.entity.Contrato;
+import com.shsm.api.entity.MascotaContrato;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -24,7 +25,11 @@ public record ContratoResponse(
         String frecuenciaPago,
         String notas,
         Boolean activo,
-        OffsetDateTime createdAt
+        OffsetDateTime createdAt,
+        String tipoPlan,
+        MascotaContrato mascota,
+        BigDecimal aportacionDiaria,
+        String condiciones
 ) {
     public static ContratoResponse from(Contrato c) {
         String titular = c.getPersona().getNombre() + " " + c.getPersona().getApPaterno()
@@ -47,7 +52,11 @@ public record ContratoResponse(
                 c.getFrecuenciaPago(),
                 c.getNotas(),
                 c.getActivo(),
-                c.getCreatedAt()
+                c.getCreatedAt(),
+                c.getPlan().getTipoPlan(),
+                c.getMascota(),
+                c.getAportacionDiaria(),
+                c.getCondiciones()
         );
     }
 }

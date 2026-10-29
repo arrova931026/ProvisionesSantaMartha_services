@@ -19,6 +19,9 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
+import java.text.Normalizer;
 import java.util.List;
 import java.util.Map;
 
@@ -97,6 +100,11 @@ public class TarifaController {
 
         asignarArticulos(plan, request.articuloIds());
 
+        if ("MUTUALISTA_MASCOTAS".equals(tipoNorm)) {
+            plan.aplicarMutualistaMascotas();
+            plan.getArticulos().clear();
+        }
+
         PlanFunerario guardado = planRepository.save(plan);
         return ResponseEntity.status(HttpStatus.CREATED).body(PlanFunerarioResponse.from(guardado));
     }
@@ -114,6 +122,9 @@ public class TarifaController {
         if ("MUTUALISTA".equals(plan.getTipoPlan())) {
             throw new BusinessException("Use PATCH /tarifas/mutualista para el plan mutualista.");
         }
+        if (esMutualistaMascotasBasico(plan)) {
+            throw new BusinessException("El plan Mutualista de Mascotas Básico es predeterminado y no se puede editar.");
+        }
 
         plan.setNombre(request.nombre());
         plan.setDescripcion(request.descripcion());
@@ -130,6 +141,15 @@ public class TarifaController {
             asignarArticulos(plan, request.articuloIds());
         }
 
+        if ("MUTUALISTA_MASCOTAS".equals(plan.getTipoPlan())) {
+            plan.setAportacionDiaria(BigDecimal.ONE);
+            plan.setMensualidad(plan.getPrecioTotal().divide(
+                    BigDecimal.valueOf(plan.getDuracionMeses()), 2, RoundingMode.HALF_UP));
+            plan.setNumeroBeneficiarios((short) 0);
+            plan.setPorcentajeExtraMascota(BigDecimal.ZERO);
+            plan.actualizarCondicionesMutualistaMascotas();
+            plan.getArticulos().clear();
+        }
         return ResponseEntity.ok(PlanFunerarioResponse.from(planRepository.save(plan)));
     }
 
@@ -171,9 +191,17 @@ public class TarifaController {
 
     // ── Helpers ──────────────────────────────────────────────────────────────
 
+    private boolean esMutualistaMascotasBasico(PlanFunerario plan) {
+        String nombreNormalizado = Normalizer.normalize(plan.getNombre(), Normalizer.Form.NFD)
+                .replaceAll("\\p{M}", "")
+                .trim();
+        return "MUTUALISTA_MASCOTAS".equals(plan.getTipoPlan())
+                && "Mutualista de Mascotas Basico".equalsIgnoreCase(nombreNormalizado);
+    }
+
     private String normalizarTipo(String tipo) {
         String t = tipo.trim().toUpperCase();
-        if (!List.of("MUTUALISTA", "HUMANOS", "MASCOTAS").contains(t)) {
+        if (!List.of("MUTUALISTA", "HUMANOS", "MUTUALISTA_MASCOTAS", "MASCOTAS").contains(t)) {
             throw new BusinessException("Tipo de plan inválido: " + tipo);
         }
         return t;

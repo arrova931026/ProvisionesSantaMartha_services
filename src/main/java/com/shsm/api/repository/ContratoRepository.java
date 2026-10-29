@@ -16,6 +16,8 @@ public interface ContratoRepository extends JpaRepository<Contrato, Long> {
 
     List<Contrato> findByPersonaIdAndActivoTrue(Long personaId);
 
+    boolean existsByIdAndPersonaId(Long id, Long personaId);
+
     @Query("""
             SELECT c FROM Contrato c
             WHERE c.deletedAt IS NULL

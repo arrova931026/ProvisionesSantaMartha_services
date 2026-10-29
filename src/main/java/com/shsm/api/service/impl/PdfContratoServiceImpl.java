@@ -59,6 +59,9 @@ public class PdfContratoServiceImpl implements PdfContratoService {
     // ── PDF builder ───────────────────────────────────────────────────────────
 
     private byte[] buildPdf(Contrato c) {
+        if ("MUTUALISTA_MASCOTAS".equals(c.getPlan().getTipoPlan())) {
+            return buildMutualistaMascotasPdf(c);
+        }
         // Datos del contrato
         String titular = c.getPersona().getNombre() + " "
                 + c.getPersona().getApPaterno()
@@ -229,7 +232,51 @@ public class PdfContratoServiceImpl implements PdfContratoService {
         }
     }
 
-    private void addSection(Document doc, Font boldFont, Font normalFont, String num, String titulo, String[] textos) throws DocumentException {
+        private byte[] buildMutualistaMascotasPdf(Contrato contrato) {
+        try (ByteArrayOutputStream output = new ByteArrayOutputStream()) {
+            Document document = new Document(PageSize.LETTER, 50, 50, 45, 40);
+            PdfWriter.getInstance(document, output);
+            document.open();
+            Font title = FontFactory.getFont(FontFactory.HELVETICA_BOLD, 12);
+            Font bold = FontFactory.getFont(FontFactory.HELVETICA_BOLD, 9);
+            Font normal = FontFactory.getFont(FontFactory.HELVETICA, 10);
+            document.add(new Paragraph("CONTRATO MUTUALISTA DE PREVISION FUNERARIA PARA MASCOTAS", title));
+            String titular = contrato.getPersona().getNombre() + " " + contrato.getPersona().getApPaterno()
+                + (contrato.getPersona().getApMaterno() == null ? "" : " " + contrato.getPersona().getApMaterno());
+            document.add(new Paragraph("SOCIEDAD HUMANISTA SANTA MARTHA, S.A. DE C.V., en lo sucesivo LA EMPRESA, y "
+                + titular + ", en lo sucesivo EL MUTUALISTA, celebran el presente contrato.", normal));
+            document.add(new Paragraph("Contrato: " + contrato.getNumeroContrato() + " | Plan: " + contrato.getPlan().getNombre(), bold));
+            document.add(new Paragraph("Vigencia: Inicio: " + contrato.getFechaInicio()
+                + ". Fin: " + contrato.getFechaVencimiento() + ".", bold));
+            document.add(new Paragraph("Precio total: $" + fmtMonto(contrato.getPrecioContratado())
+                + " MXN. Mensualidad pactada: $" + fmtMonto(contrato.getMensualidadPactada()) + " MXN.", bold));
+            document.add(new Paragraph("CLAUSULAS", title));
+            document.add(new Paragraph(contrato.getCondiciones(), normal));
+            document.add(new Paragraph("La vigencia esta sujeta al cumplimiento de las aportaciones. "
+                + "Los servicios adicionales no incluidos tendran costo adicional. Las partes manifiestan haber leido "
+                + "y aceptado el contenido del presente contrato, firmandolo de conformidad.", normal));
+            var mascota = contrato.getMascota();
+            document.add(new Paragraph("DATOS DE LA MASCOTA", title));
+            document.add(new Paragraph("Nombre: " + mascota.getNombre(), normal));
+            document.add(new Paragraph("Especie: " + mascota.getEspecie(), normal));
+            document.add(new Paragraph("Raza: " + mascota.getRaza(), normal));
+            document.add(new Paragraph("Peso: " + mascota.getPeso().toPlainString() + " kg", normal));
+            document.add(new Paragraph("Color/Caracteristicas: " + mascota.getColorCaracteristicas(), normal));
+            document.add(new Paragraph("Poza Rica de Hidalgo, Veracruz, a " + LocalDate.now() + ".", normal));
+            PdfPTable firmas = new PdfPTable(2);
+            firmas.setWidthPercentage(100);
+            firmas.setSpacingBefore(24);
+            firmas.addCell(sigCell("ALBERTO ESTEBAN VARGAS RICO\nADMINISTRADOR UNICO\nSOCIEDAD HUMANISTA SANTA MARTHA, S.A. DE C.V.", bold, normal));
+            firmas.addCell(sigCell("EL MUTUALISTA\n" + titular, bold, normal));
+            document.add(firmas);
+            document.close();
+            return output.toByteArray();
+        } catch (Exception exception) {
+            throw new IllegalStateException("No se pudo generar el contrato mutualista de mascotas", exception);
+        }
+        }
+
+        private void addSection(Document doc, Font boldFont, Font normalFont, String num, String titulo, String[] textos) throws DocumentException {
         Paragraph t = new Paragraph("DECLARACIÓN " + num + " – " + titulo, boldFont);
         t.setSpacingBefore(8);
         t.setSpacingAfter(3);

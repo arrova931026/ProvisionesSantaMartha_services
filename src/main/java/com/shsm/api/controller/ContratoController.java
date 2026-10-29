@@ -38,21 +38,25 @@ public class ContratoController {
     }
 
     @GetMapping("/{id}")
+    @PreAuthorize("@acceso.puedeVerContrato(#id)")
     public ResponseEntity<ContratoResponse> obtener(@PathVariable Long id) {
         return ResponseEntity.ok(contratoService.obtener(id));
     }
 
     @GetMapping("/persona/{personaId}")
+    @PreAuthorize("@acceso.puedeVerPersona(#personaId)")
     public ResponseEntity<List<ContratoResponse>> listarPorPersona(@PathVariable Long personaId) {
         return ResponseEntity.ok(contratoService.listarPorPersona(personaId));
     }
 
     @GetMapping("/{id}/beneficiarios")
+    @PreAuthorize("@acceso.puedeVerContrato(#id)")
     public ResponseEntity<List<BeneficiarioResponse>> listarBeneficiarios(@PathVariable Long id) {
         return ResponseEntity.ok(contratoService.listarBeneficiariosDeContrato(id));
     }
 
     @PostMapping("/{id}/beneficiarios")
+    @PreAuthorize("@acceso.puedeVerContrato(#id)")
     public ResponseEntity<BeneficiarioResponse> agregarBeneficiario(
             @PathVariable Long id,
             @Valid @RequestBody BeneficiarioRequest request) {
@@ -61,6 +65,7 @@ public class ContratoController {
     }
 
     @PutMapping("/{id}/beneficiarios/{beneficiarioId}")
+    @PreAuthorize("@acceso.puedeVerContrato(#id)")
     public ResponseEntity<BeneficiarioResponse> actualizarBeneficiario(
             @PathVariable Long id,
             @PathVariable Long beneficiarioId,
@@ -69,6 +74,7 @@ public class ContratoController {
     }
 
     @DeleteMapping("/{id}/beneficiarios/{beneficiarioId}")
+    @PreAuthorize("@acceso.puedeVerContrato(#id)")
     public ResponseEntity<Void> eliminarBeneficiario(
             @PathVariable Long id,
             @PathVariable Long beneficiarioId) {
@@ -77,7 +83,7 @@ public class ContratoController {
     }
 
     @PostMapping
-    @PreAuthorize("hasAnyRole('ADMIN', 'AGENTE', 'CLIENTE')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'AGENTE', 'CLIENTE') and @acceso.puedeVerPersona(#request.personaId())")
     public ResponseEntity<ContratoResponse> crear(@Valid @RequestBody ContratoRequest request) {
         return ResponseEntity.status(HttpStatus.CREATED).body(contratoService.crear(request));
     }
@@ -99,6 +105,7 @@ public class ContratoController {
 
     /** Descarga el PDF del contrato. */
     @GetMapping("/{id}/pdf")
+    @PreAuthorize("@acceso.puedeVerContrato(#id)")
     public ResponseEntity<byte[]> descargarPdf(@PathVariable Long id) {
         byte[] pdf = pdfContratoService.generarPdf(id);
         ContratoResponse c = contratoService.obtener(id);
@@ -111,6 +118,7 @@ public class ContratoController {
 
     /** Envía el PDF del contrato por correo al titular. */
     @PostMapping("/{id}/enviar-pdf")
+    @PreAuthorize("@acceso.puedeVerContrato(#id)")
     public ResponseEntity<Map<String, String>> enviarPdf(@PathVariable Long id) {
         pdfContratoService.enviarPorCorreo(id);
         return ResponseEntity.ok(Map.of("mensaje", "PDF enviado al correo del titular."));
@@ -118,6 +126,7 @@ public class ContratoController {
 
     /** Verifica la elegibilidad de edad de una persona para contratar. */
     @GetMapping("/elegibilidad/{personaId}")
+    @PreAuthorize("@acceso.puedeVerPersona(#personaId)")
     public ResponseEntity<Map<String, String>> verificarElegibilidad(@PathVariable Long personaId) {
         contratoService.validarElegibilidadEdad(personaId);
         return ResponseEntity.ok(Map.of("elegible", "true"));

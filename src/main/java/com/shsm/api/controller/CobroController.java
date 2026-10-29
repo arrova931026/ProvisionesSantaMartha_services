@@ -6,6 +6,7 @@ import com.shsm.api.repository.CobroProgramadoRepository;
 import com.shsm.api.repository.PagoRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
@@ -23,6 +24,7 @@ public class CobroController {
     private final PagoRepository pagoRepository;
 
     @GetMapping("/contrato/{contratoId}")
+    @PreAuthorize("@acceso.puedeVerContrato(#contratoId)")
     public ResponseEntity<List<CobroProgramadoResponse>> listarPorContrato(
             @PathVariable Long contratoId) {
         var cobros = cobroRepository.findByContratoIdOrderByNumeroMensualidad(contratoId);
@@ -33,6 +35,7 @@ public class CobroController {
     }
 
     @GetMapping("/contrato/{contratoId}/pendientes")
+    @PreAuthorize("@acceso.puedeVerContrato(#contratoId)")
     public ResponseEntity<List<CobroProgramadoResponse>> pendientesPorContrato(
             @PathVariable Long contratoId) {
         return ResponseEntity.ok(
@@ -41,6 +44,7 @@ public class CobroController {
     }
 
     @GetMapping("/{id}")
+    @PreAuthorize("@acceso.puedeVerCobro(#id)")
     public ResponseEntity<CobroProgramadoResponse> obtener(@PathVariable Long id) {
         return ResponseEntity.ok(
                 cobroRepository.findById(id)

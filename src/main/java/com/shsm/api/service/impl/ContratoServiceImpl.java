@@ -78,8 +78,29 @@ public class ContratoServiceImpl implements ContratoService {
         var plan = planRepository.findById(req.planId())
             .orElseThrow(() -> new ResourceNotFoundException("PlanFunerario", req.planId()));
 
+        boolean mutualistaMascotas = "MUTUALISTA_MASCOTAS".equals(plan.getTipoPlan());
+        if (!mutualistaMascotas && (req.precioContratado() == null || req.mensualidadPactada() == null)) {
+            throw new BusinessException("El precio contratado y la mensualidad pactada son requeridos.");
+        }
+        if (!Boolean.TRUE.equals(plan.getActivo())) {
+            throw new BusinessException("El plan seleccionado no esta activo.");
+        }
+        if (mutualistaMascotas) {
+            var mascota = req.mascota();
+            if (mascota == null || isBlank(mascota.getNombre()) || isBlank(mascota.getEspecie())
+                    || isBlank(mascota.getRaza()) || isBlank(mascota.getColorCaracteristicas())
+                    || mascota.getPeso() == null || mascota.getPeso().signum() <= 0) {
+                throw new BusinessException("Complete nombre, especie, raza, peso y color/caracteristicas de la mascota.");
+            }
+            contrato.setMascota(mascota);
+            contrato.setAportacionDiaria(plan.getAportacionDiaria());
+            contrato.setCondiciones(plan.getCondiciones());
+        } else if (req.mascota() != null) {
+            throw new BusinessException("Los datos de mascota solo corresponden a Mutualista de Mascotas.");
+        }
+
         // ── Validación de edad máxima (64 años 11 meses) ──────────────────────
-        if (!"MASCOTAS".equals(plan.getTipoPlan())) {
+        if (!"MASCOTAS".equals(plan.getTipoPlan()) && !mutualistaMascotas) {
             validarEdadPersona(persona);
         }
 
@@ -111,8 +132,8 @@ public class ContratoServiceImpl implements ContratoService {
         contrato.setFechaInicio(req.fechaInicio());
         contrato.setFechaVencimiento(req.fechaInicio()
                 .plusMonths(plan.getDuracionMeses()));
-        contrato.setPrecioContratado(req.precioContratado());
-        contrato.setMensualidadPactada(req.mensualidadPactada());
+        contrato.setPrecioContratado(mutualistaMascotas ? plan.getPrecioTotal() : req.precioContratado());
+        contrato.setMensualidadPactada(mutualistaMascotas ? plan.getMensualidad() : req.mensualidadPactada());
         contrato.setFrecuenciaPago(frecuenciaPago);
         contrato.setNotas(req.notas());
         contrato.setNumeroContrato(generarNumeroContrato());
@@ -133,6 +154,10 @@ public class ContratoServiceImpl implements ContratoService {
     @Transactional
     public BeneficiarioResponse agregarBeneficiario(Long contratoId, BeneficiarioRequest req) {
         Contrato contrato = findById(contratoId);
+
+        if ("MUTUALISTA_MASCOTAS".equals(contrato.getPlan().getTipoPlan())) {
+            throw new BusinessException("Mutualista de Mascotas no permite beneficiarios.");
+        }
 
         // Verificar que no supere el límite de beneficiarios del plan
         long actual = beneficiarioRepository.countByContratoIdAndActivoTrue(contratoId);
@@ -321,7 +346,12 @@ public class ContratoServiceImpl implements ContratoService {
             cobro.setNumeroMensualidad((short) (i + 1));
             cobro.setFechaProgramada(fechas.get(i));
             cobro.setFechaLimite(fechas.get(i).plusDays(10));
-            cobro.setMonto(contrato.getMensualidadPactada());
+            java.math.BigDecimal monto = contrato.getMensualidadPactada();
+            if ("MUTUALISTA_MASCOTAS".equals(contrato.getPlan().getTipoPlan()) && i == fechas.size() - 1) {
+                monto = contrato.getPrecioContratado().subtract(
+                        contrato.getMensualidadPactada().multiply(java.math.BigDecimal.valueOf(i)));
+            }
+            cobro.setMonto(monto);
             cobro.setEstado(pendiente);
             cobroProgramadoRepository.save(cobro);
         }

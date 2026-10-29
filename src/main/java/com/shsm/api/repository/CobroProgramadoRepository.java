@@ -12,6 +12,8 @@ public interface CobroProgramadoRepository extends JpaRepository<CobroProgramado
 
     List<CobroProgramado> findByContratoIdOrderByNumeroMensualidad(Long contratoId);
 
+    boolean existsByIdAndContratoPersonaId(Long id, Long personaId);
+
     @Query("""
             SELECT cp FROM CobroProgramado cp
             WHERE cp.contrato.id = :contratoId
