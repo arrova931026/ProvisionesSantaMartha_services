@@ -70,6 +70,7 @@ app:
   profile-pictures-dir: ${PROFILE_PICTURES_DIR:profile_pictures}
   docs-dir: ${DOCS_DIR:docs}
   frontend-url: ${FRONTEND_URL}
+  public-api-url: ${PUBLIC_API_URL:}
   google:
     client-id: ${GOOGLE_CLIENT_ID}
   mail:

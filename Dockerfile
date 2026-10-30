@@ -13,6 +13,13 @@ RUN mvn package -DskipTests -q
 FROM eclipse-temurin:21-jre-alpine
 WORKDIR /app
 
+# LibreOffice para convertir el contrato Mutualista (.docx) a PDF
+RUN apk add --no-cache libreoffice-writer fontconfig font-liberation font-noto \
+    && fc-cache -f
+
+# URL pública de la API (se usa en el QR del video de consentimiento), p. ej. https://tu-dominio/api
+ENV PUBLIC_API_URL=""
+
 # Carpetas de archivos locales; móntalas como volúmenes para conservarlas al recrear el contenedor.
 RUN mkdir -p /app/profile_pictures /app/docs
 VOLUME ["/app/profile_pictures", "/app/docs"]

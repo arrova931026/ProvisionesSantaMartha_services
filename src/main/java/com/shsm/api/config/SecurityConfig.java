@@ -53,6 +53,7 @@ public class SecurityConfig {
                         .requestMatchers("/admin/**").hasRole("ADMIN")
                         .requestMatchers("/profile_pictures/**").permitAll()
                         .requestMatchers("/documentos/**").authenticated()
+                        .requestMatchers(HttpMethod.GET, "/contratos/*/video-consentimiento").permitAll()
                         .requestMatchers("/contratos/**").authenticated()
                         .anyRequest().authenticated()
                 )

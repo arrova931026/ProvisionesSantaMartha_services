@@ -18,6 +18,14 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import com.shsm.api.repository.ContratoRepository;
+import com.shsm.api.service.LocalFileStorageService;
+import com.shsm.api.service.impl.DocxContratoService;
+import org.springframework.core.io.FileSystemResource;
+import org.springframework.core.io.Resource;
+import org.springframework.http.ContentDisposition;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.List;
 import java.util.Map;
 
@@ -28,6 +36,9 @@ public class ContratoController {
 
     private final ContratoService contratoService;
     private final PdfContratoService pdfContratoService;
+    private final DocxContratoService docxContratoService;
+    private final ContratoRepository contratoRepository;
+    private final LocalFileStorageService storageService;
 
     @GetMapping
     @PreAuthorize("hasAnyRole('ADMIN', 'AGENTE')")
@@ -114,6 +125,33 @@ public class ContratoController {
                 .header(HttpHeaders.CONTENT_DISPOSITION,
                         "attachment; filename=\"Contrato_" + c.numeroContrato() + ".pdf\"")
                 .body(pdf);
+    }
+
+    /** Descarga pública (vía QR) del video de consentimiento; protegida con firma HMAC. */
+    @GetMapping("/{id}/video-consentimiento")
+    public ResponseEntity<Resource> descargarVideo(@PathVariable Long id, @RequestParam String firma) {
+        Long personaId = contratoRepository.findById(id)
+                .filter(ct -> ct.getDeletedAt() == null)
+                .map(ct -> ct.getPersona().getId())
+                .orElse(null);
+        if (personaId == null || !docxContratoService.firmaValida(personaId, firma)) {
+            return ResponseEntity.notFound().build();
+        }
+        Path video = storageService.findVideoConsent(personaId).orElse(null);
+        if (video == null) return ResponseEntity.notFound().build();
+        String nombre = video.getFileName().toString();
+        String tipo = nombre.endsWith(".mp4") ? "video/mp4"
+                : nombre.endsWith(".ogv") ? "video/ogg" : "video/webm";
+        try {
+            return ResponseEntity.ok()
+                    .contentType(MediaType.parseMediaType(tipo))
+                    .contentLength(Files.size(video))
+                    .header(HttpHeaders.CONTENT_DISPOSITION, ContentDisposition.attachment()
+                            .filename("Consentimiento_" + id + nombre.substring(nombre.lastIndexOf('.'))).build().toString())
+                    .body(new FileSystemResource(video));
+        } catch (java.io.IOException e) {
+            return ResponseEntity.notFound().build();
+        }
     }
 
     /** Envía el PDF del contrato por correo al titular. */

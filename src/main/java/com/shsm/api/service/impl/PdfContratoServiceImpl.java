@@ -25,6 +25,7 @@ public class PdfContratoServiceImpl implements PdfContratoService {
 
     private final ContratoRepository contratoRepository;
     private final EmailService emailService;
+    private final DocxContratoService docxContratoService;
 
     private static final String[] MESES = {
         "ENERO","FEBRERO","MARZO","ABRIL","MAYO","JUNIO",
@@ -59,8 +60,11 @@ public class PdfContratoServiceImpl implements PdfContratoService {
     // ── PDF builder ───────────────────────────────────────────────────────────
 
     private byte[] buildPdf(Contrato c) {
-        if ("MUTUALISTA_MASCOTAS".equals(c.getPlan().getTipoPlan())) {
-            return buildMutualistaMascotasPdf(c);
+        if ("MUTUALISTA".equals(c.getPlan().getTipoPlan()) || "HUMANOS".equals(c.getPlan().getTipoPlan())) {
+            return docxContratoService.generarPdf(c.getId());
+        }
+        if ("MUTUALISTA_MASCOTAS".equals(c.getPlan().getTipoPlan()) || "MASCOTAS".equals(c.getPlan().getTipoPlan())) {
+            return docxContratoService.generarPdf(c.getId());
         }
         // Datos del contrato
         String titular = c.getPersona().getNombre() + " "

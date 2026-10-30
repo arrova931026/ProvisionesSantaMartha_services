@@ -51,6 +51,19 @@ public class LocalFileStorageService {
         delete(docsDir, relativePath);
     }
 
+    /** Devuelve el video de consentimiento de la persona, si existe. */
+    public java.util.Optional<Path> findVideoConsent(Long personaId) {
+        Path dir = docsDir.resolve(String.valueOf(personaId)).normalize();
+        if (!dir.startsWith(docsDir) || !Files.isDirectory(dir)) return java.util.Optional.empty();
+        try (var files = Files.list(dir)) {
+            return files.filter(p -> p.getFileName().toString().startsWith("VIDEO_CONSENT."))
+                    .findFirst();
+        } catch (IOException e) {
+            log.warn("No se pudo buscar el video de consentimiento de {}: {}", personaId, e.getMessage());
+            return java.util.Optional.empty();
+        }
+    }
+
     private void store(Path root, String relativePath, InputStream content) throws IOException {
         Path destination = resolve(root, relativePath);
         Files.createDirectories(destination.getParent());
