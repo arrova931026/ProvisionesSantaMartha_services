@@ -1,303 +1,217 @@
-# 🏢 Provisiones Santa Martha — API REST
+<div align="center">
 
-> API backend para la gestión de contratos funerarios, pagos, personas y cobros programados de **Provisiones Santa Martha**.
+# Sociedad Humanista Santa Martha
 
----
+### Plataforma de Gestión de Previsión Funeraria · API REST
 
-## 📋 Tabla de Contenidos
+*Contratos, pagos y cobros programados — con firma digital respaldada por video de consentimiento.*
 
-- [Descripción](#descripción)
-- [Arquitectura](#arquitectura)
-- [Patrones de Diseño](#patrones-de-diseño)
-- [Tecnologías y Dependencias](#tecnologías-y-dependencias)
-- [Base de Datos](#base-de-datos)
-- [Endpoints Principales](#endpoints-principales)
-- [Variables de Entorno](#variables-de-entorno)
-- [Instalación y Ejecución](#instalación-y-ejecución)
-- [Estructura del Proyecto](#estructura-del-proyecto)
+![Java](https://img.shields.io/badge/Java-21-ED8B00?style=for-the-badge&logo=openjdk&logoColor=white)
+![Spring Boot](https://img.shields.io/badge/Spring_Boot-3.4-6DB33F?style=for-the-badge&logo=springboot&logoColor=white)
+![MySQL](https://img.shields.io/badge/MySQL-8-4479A1?style=for-the-badge&logo=mysql&logoColor=white)
+![Docker](https://img.shields.io/badge/Docker-ready-2496ED?style=for-the-badge&logo=docker&logoColor=white)
+![JWT](https://img.shields.io/badge/Auth-JWT-000000?style=for-the-badge&logo=jsonwebtokens&logoColor=white)
+
+</div>
 
 ---
 
-## 📖 Descripción
+## Contenido
 
-Sistema de gestión para una empresa de servicios funerarios. Permite administrar:
-
-- 👤 **Personas y clientes**
-- 📄 **Contratos funerarios** con planes y beneficiarios
-- 💰 **Pagos y cobros programados**
-- 📦 **Catálogo de artículos y planes funerarios**
-- 🔔 **Notificaciones por correo**
-- 🔐 **Autenticación segura con JWT**
-- 📝 **Auditoría de registros**
+[Visión general](#visión-general) · [Contratos en PDF](#contratos-en-pdf) · [Arquitectura](#arquitectura) · [Stack](#stack-tecnológico) · [Inicio rápido](#inicio-rápido) · [Configuración](#configuración) · [Docker](#docker) · [API](#api) · [Seguridad](#seguridad) · [Estructura](#estructura-del-proyecto)
 
 ---
 
-## 🏗️ Arquitectura
+## Visión general
 
-El proyecto implementa una **arquitectura en capas (Layered Architecture)** sobre una **API REST**, siguiendo el patrón MVC adaptado para servicios web:
+Backend de **Sociedad Humanista Santa Martha, S.A. de C.V.** para administrar de punta a punta el ciclo de vida de sus servicios de previsión funeraria:
+
+| | Capacidad |
+|---|---|
+| **Clientes** | Personas, titulares, beneficiarios y documentos |
+| **Contratos** | Cuatro modalidades con generación automática en PDF |
+| **Cobranza** | Pagos, calendario de cuotas y cobros programados |
+| **Catálogo** | Planes funerarios, tarifas y artículos |
+| **Comunicación** | Notificaciones por correo y webhook de WhatsApp |
+| **Control** | Autenticación JWT, roles y auditoría de registros |
+
+---
+
+## Contratos en PDF
+
+Cada contrato se genera a partir de la plantilla `.docx` oficial, rellenada con los datos del cliente y convertida a **PDF** con LibreOffice.
+
+| Modalidad | `tipoPlan` | Plantilla |
+|---|---|---|
+| Mutualista | `MUTUALISTA` | `mutualista.docx` |
+| Previsión de Humanos | `HUMANOS` | `previsionhumanos.docx` |
+| Mutualista de Mascotas | `MUTUALISTA_MASCOTAS` | `mutualistamascotas.docx` |
+| Previsión de Mascotas | `MASCOTAS` | `previsionmascotas.docx` |
+
+**Características**
+
+- Datos del cliente resaltados en **negritas**.
+- Secciones opcionales (p. ej. beneficiarios) que aparecen únicamente cuando existen.
+- **Código QR como aval de firma:** enlaza a la descarga del video de consentimiento grabado por el cliente.
+- El enlace del QR está firmado con **HMAC-SHA256**, por lo que no puede alterarse ni adivinarse.
 
 ```
-┌─────────────────────────────────────────┐
-│           Cliente HTTP / Frontend        │
-└──────────────────┬──────────────────────┘
-                   │
-┌──────────────────▼──────────────────────┐
-│        Security Layer (JWT Filter)       │
-└──────────────────┬──────────────────────┘
-                   │
-┌──────────────────▼──────────────────────┐
-│         Controller Layer (@RestController)│
-│  AuthController, ContratoController,     │
-│  PagoController, PersonaController...    │
-└──────────────────┬──────────────────────┘
-                   │
-┌──────────────────▼──────────────────────┐
-│           Service Layer (@Service)        │
-│     Lógica de negocio y validaciones     │
-└──────────────────┬──────────────────────┘
-                   │
-┌──────────────────▼──────────────────────┐
-│        Repository Layer (JPA)            │
-│     Spring Data JPA Repositories        │
-└──────────────────┬──────────────────────┘
-                   │
-┌──────────────────▼──────────────────────┐
-│           MySQL Database                 │
-│            shsm_db                       │
-└─────────────────────────────────────────┘
+GET /api/contratos/{id}/pdf                          → Descarga el contrato (autenticado)
+GET /api/contratos/{id}/video-consentimiento?firma=… → Video de consentimiento (enlace firmado del QR)
 ```
 
 ---
 
-## 🎨 Patrones de Diseño
+## Arquitectura
 
-| Patrón | Implementación |
-|--------|---------------|
-| **DTO (Data Transfer Object)** | Clases en `dto/` para desacoplar entidades de la API |
-| **Repository Pattern** | Interfaces en `repository/` con Spring Data JPA |
-| **Template Method** | `BaseEntity` como superclase abstracta con campos comunes |
-| **Chain of Responsibility** | Filtros de seguridad con `JwtAuthenticationFilter` |
-| **Singleton** | Beans gestionados por el contenedor de Spring |
-| **Global Exception Handler** | `@RestControllerAdvice` centraliza el manejo de errores |
+Arquitectura en capas sobre una API REST sin estado.
+
+```mermaid
+flowchart TB
+    A[Cliente / Frontend Angular] --> B[Filtro JWT]
+    B --> C[Controllers REST]
+    C --> D[Services · lógica de negocio]
+    D --> E[Repositories · Spring Data JPA]
+    E --> F[(MySQL)]
+    D --> G[DocxContratoService]
+    G --> H[Plantilla .docx + QR]
+    H --> I[LibreOffice → PDF]
+```
+
+| Patrón | Aplicación |
+|---|---|
+| DTO | Desacopla las entidades del contrato de la API |
+| Repository | Acceso a datos con Spring Data JPA |
+| Template Method | `BaseEntity` con campos comunes |
+| Chain of Responsibility | Filtros de seguridad (`JwtAuthenticationFilter`) |
+| Global Exception Handler | `@RestControllerAdvice` centraliza los errores |
 
 ---
 
-## 🛠️ Tecnologías y Dependencias
+## Stack tecnológico
 
-### Core
-| Dependencia | Versión | Descripción |
-|------------|---------|-------------|
-| **Java** | 21 | Lenguaje principal |
-| **Spring Boot** | 3.4.4 | Framework principal |
-| **Spring Boot Starter Web** | 3.4.4 | API REST (MVC) |
-| **Spring Boot Starter Data JPA** | 3.4.4 | ORM con Hibernate |
-| **Spring Boot Starter Security** | 3.4.4 | Autenticación y autorización |
-| **Spring Boot Starter Validation** | 3.4.4 | Validación de DTOs con Bean Validation |
-| **Spring Boot Starter Mail** | 3.4.4 | Envío de correos SMTP |
-
-### Seguridad
-| Dependencia | Versión | Descripción |
-|------------|---------|-------------|
-| **jjwt-api** | 0.12.6 | JSON Web Tokens |
-| **jjwt-impl** | 0.12.6 | Implementación JWT |
-| **jjwt-jackson** | 0.12.6 | Serialización JWT con Jackson |
-
-### Base de Datos
-| Dependencia | Versión | Descripción |
-|------------|---------|-------------|
-| **mysql-connector-j** | Runtime | Driver JDBC para MySQL |
-
-### Utilidades
-| Dependencia | Versión | Descripción |
-|------------|---------|-------------|
-| **Lombok** | Managed | Reducción de boilerplate (getters, setters, builders) |
-
-### Testing
-| Dependencia | Versión | Descripción |
-|------------|---------|-------------|
-| **spring-boot-starter-test** | 3.4.4 | JUnit 5, Mockito |
-| **spring-security-test** | Managed | Tests de seguridad |
-
-### Build
-| Herramienta | Versión |
-|------------|---------|
-| **Maven** | 3.x |
-| **spring-boot-maven-plugin** | 3.4.4 |
+| Capa | Tecnología |
+|---|---|
+| Lenguaje | Java 21 |
+| Framework | Spring Boot 3.4 (Web, Data JPA, Security, Validation, Mail) |
+| Persistencia | MySQL 8 · Hibernate |
+| Autenticación | JWT (jjwt 0.12) · BCrypt |
+| Documentos | Plantillas DOCX · LibreOffice · OpenPDF |
+| Código QR | ZXing 3.5 |
+| Utilidades | Lombok |
+| Build | Maven 3 |
+| Contenedor | Docker (LibreOffice y fuentes incluidos) |
 
 ---
 
-## 🗄️ Base de Datos
+## Inicio rápido
 
-- **Motor:** MySQL
-- **Base de datos:** `shsm_db`
-- **Host por defecto:** `localhost:3306`
-- **DDL Auto:** `update` (Hibernate actualiza el esquema automáticamente)
-- **Dialecto:** `org.hibernate.dialect.MySQLDialect`
+**Requisitos:** Java 21, Maven 3, MySQL 8 y LibreOffice (`soffice`) para generar PDFs en local.
 
-### Entidades principales
+```bash
+# 1. Clonar
+git clone https://github.com/tu-usuario/provisiones-santa-martha-api.git
+cd provisiones-santa-martha-api
 
-| Entidad | Tabla | Descripción |
-|---------|-------|-------------|
-| `Persona` | `personas` | Clientes y titulares de contratos |
-| `Contrato` | `contratos` | Contratos funerarios |
-| `PlanFunerario` | `planes_funerarios` | Planes disponibles |
-| `Beneficiario` | `beneficiarios` | Beneficiarios por contrato |
-| `Pago` | `pagos` | Registro de pagos |
-| `CobroProgramado` | `cobros_programados` | Cobros futuros programados |
-| `Empleado` | `empleados` | Personal de la empresa |
-| `CatalogoArticulo` | `catalogo_articulos` | Artículos del catálogo |
-| `Notificacion` | `notificaciones` | Notificaciones del sistema |
-| `Auditoria` | `auditorias` | Log de auditoría |
-| `TokenSesion` | `tokens_sesion` | Tokens JWT activos |
+# 2. Base de datos
+mysql -u root -p -e "CREATE DATABASE shsm_db CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;"
+
+# 3. Variables de entorno (ver tabla siguiente)
+export DB_URL=jdbc:mysql://localhost:3306/shsm_db
+export DB_USERNAME=root
+export DB_PASSWORD=tu_password
+export JWT_SECRET=una_clave_larga_y_segura
+export PORT=8080
+
+# 4. Ejecutar
+mvn clean install
+mvn spring-boot:run
+```
+
+La API queda disponible en `http://localhost:8080/api`.
 
 ---
 
-## 🔌 Endpoints Principales
+## Configuración
 
-### Autenticación
-```
-POST /api/auth/login       → Iniciar sesión (retorna JWT)
-POST /api/auth/register    → Registrar usuario
-```
+| Variable | Descripción |
+|---|---|
+| `DB_URL` · `DB_USERNAME` · `DB_PASSWORD` | Conexión a MySQL |
+| `JWT_SECRET` | Clave de firma de tokens y de los enlaces del QR |
+| `MAIL_HOST` · `MAIL_PORT` · `MAIL_USERNAME` · `MAIL_PASSWORD` | Servidor SMTP |
+| `PORT` | Puerto HTTP |
+| `PUBLIC_API_URL` | URL pública del backend (incluye `/api`). **Obligatoria en producción** para que el QR apunte al video |
 
-### Contratos
-```
-GET    /api/contratos              → Listar contratos (paginado)
-POST   /api/contratos              → Crear contrato
-GET    /api/contratos/{id}         → Obtener contrato
-PUT    /api/contratos/{id}         → Actualizar contrato
-DELETE /api/contratos/{id}         → Eliminar contrato
-GET    /api/contratos/persona/{id} → Contratos por persona
-```
-
-### Personas
-```
-GET    /api/personas
-POST   /api/personas
-GET    /api/personas/{id}
-PUT    /api/personas/{id}
-DELETE /api/personas/{id}
-```
-
-### Pagos
-```
-GET    /api/pagos
-POST   /api/pagos
-GET    /api/pagos/{id}
-```
-
-### Planes Funerarios
-```
-GET    /api/planes-funerarios
-POST   /api/planes-funerarios
-GET    /api/planes-funerarios/{id}
-```
-
-> ⚠️ Todos los endpoints excepto `/api/auth/**` requieren autenticación con token JWT en el header:
-> `Authorization: Bearer <token>`
+> Nunca subas credenciales al repositorio; usa variables de entorno o un gestor de secretos.
 
 ---
 
-## ⚙️ Variables de Entorno
+## Docker
 
-Crea un archivo `.env` o configura las siguientes variables en tu entorno:
+La imagen incluye LibreOffice, `fontconfig` y fuentes (Liberation y Noto) necesarias para la conversión a PDF.
 
-```env
-DB_PASSWORD=tu_password_mysql
-MAIL_USERNAME=tu_correo@gmail.com
-MAIL_PASSWORD=tu_app_password_gmail
-JWT_SECRET=tu_clave_secreta_jwt_muy_larga_y_segura
+```bash
+docker build -t shsm-api .
+docker run -p 8080:8080 --env-file .env shsm-api
 ```
 
 ---
 
-## 🚀 Instalación y Ejecución
+## API
 
-### Prerrequisitos
-- Java 21+
-- Maven 3.x
-- MySQL 8.x
+Prefijo base: `/api`. Todo requiere token JWT salvo `/auth/**` y el enlace firmado del video de consentimiento.
 
-### Pasos
+| Recurso | Controlador |
+|---|---|
+| Autenticación | `AuthController` |
+| Personas | `PersonaController` |
+| Contratos y PDF | `ContratoController` |
+| Planes funerarios | `PlanFunerarioController` |
+| Pagos y cobros | `PagoController` · `CobroController` |
+| Tarifas y catálogo | `TarifaController` · `CatalogoController` |
+| Documentos y OCR | `DocumentoController` · `OcrController` |
+| Notificaciones | `NotificacionController` · `WhatsAppWebhookController` |
+| Panel y usuarios | `PanelController` · `UsuarioController` |
 
-1. **Clona el repositorio**
-   ```bash
-   git clone https://github.com/tu-usuario/provisiones-santa-martha-api.git
-   cd provisiones-santa-martha-api
-   ```
-
-2. **Crea la base de datos**
-   ```sql
-   CREATE DATABASE shsm_db CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
-   ```
-
-3. **Configura las variables de entorno**
-   ```bash
-   export DB_PASSWORD=tu_password
-   export MAIL_USERNAME=tu_correo@gmail.com
-   export MAIL_PASSWORD=tu_app_password
-   export JWT_SECRET=mi_clave_super_secreta_256bits
-   ```
-
-4. **Compila y ejecuta**
-   ```bash
-   mvn clean install
-   mvn spring-boot:run
-   ```
-
-5. **La API estará disponible en:**
-   ```
-   http://localhost:8080
-   ```
-
----
-
-## 📁 Estructura del Proyecto
-
-```
-src/main/java/com/shsm/api/
-├── SociedadHumanistaApplication.java  # Punto de entrada
-├── config/
-│   └── SecurityConfig.java            # Configuración de seguridad
-├── controller/                        # Controladores REST
-├── dto/                               # Data Transfer Objects
-│   ├── auth/
-│   ├── contrato/
-│   ├── pago/
-│   └── persona/
-├── entity/                            # Entidades JPA
-│   ├── BaseEntity.java                # Superclase con auditoría
-│   └── catalog/
-├── exception/                         # Manejo global de errores
-│   ├── GlobalExceptionHandler.java
-│   ├── BusinessException.java
-│   └── ResourceNotFoundException.java
-├── repository/                        # Repositorios Spring Data JPA
-├── security/                          # Filtros y utilidades JWT
-└── service/                           # Lógica de negocio
-    └── impl/
-src/main/resources/
-└── application.yml                    # Configuración de la aplicación
+```http
+Authorization: Bearer <token>
 ```
 
 ---
 
-## 🔐 Seguridad
+## Seguridad
 
-- Autenticación **stateless** con **JWT (JSON Web Tokens)**
-- Tokens con expiración de **24 horas** (86400000 ms)
-- Contraseñas hasheadas con **BCrypt**
-- Sesiones sin estado (`SessionCreationPolicy.STATELESS`)
-- Rutas públicas: solo `/api/auth/**`
-
----
-
-## 👨‍💻 Autor
-
-**Provisiones Santa Martha** — Sistema de gestión de servicios funerarios
+- Autenticación **stateless** con JWT y contraseñas con **BCrypt**.
+- Enlaces del video de consentimiento firmados con **HMAC-SHA256**.
+- Auditoría de operaciones sobre registros.
+- Los secretos se inyectan siempre por variables de entorno.
 
 ---
 
-## 📄 Licencia
+## Estructura del proyecto
 
-Este proyecto es de uso privado para **Provisiones Santa Martha**.
+```
+src/main/
+├── java/com/shsm/api/
+│   ├── config/          Seguridad y configuración
+│   ├── controller/      Endpoints REST
+│   ├── dto/             Objetos de transferencia
+│   ├── entity/          Entidades JPA
+│   ├── exception/       Manejo global de errores
+│   ├── repository/      Spring Data JPA
+│   ├── security/        Filtros y utilidades JWT
+│   └── service/         Lógica de negocio (incl. DocxContratoService)
+└── resources/
+    ├── application.yml
+    └── contratos/       Plantillas .docx de los cuatro contratos
+```
+
+---
+
+<div align="center">
+
+**Sociedad Humanista Santa Martha, S.A. de C.V.** · Poza Rica, Veracruz
+
+Software de uso privado. Todos los derechos reservados.
+
+</div>
